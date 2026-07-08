@@ -6,6 +6,7 @@ serverless/managed-Postgres deployment (Supabase). Sessions are provided
 via FastAPI dependency injection and always closed after the request,
 regardless of outcome.
 """
+import uuid
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -21,7 +22,18 @@ engine = create_async_engine(
     pool_pre_ping=True,
     pool_size=5,
     max_overflow=10,
-    connect_args={"statement_cache_size": 0},  # ← add this line
+    connect_args={
+        # Supabase's pooler runs pgbouncer in transaction mode, which swaps
+        # the underlying backend Postgres connection between queries. asyncpg
+        # names prepared statements sequentially per connection object
+        # (__asyncpg_stmt_0__, _1__, ...), so two pooled sessions can collide
+        # on the same backend connection and raise DuplicatePreparedStatementError.
+        # Disabling the cache alone isn't enough — statement names still need
+        # to be globally unique, not just uncached.
+        "statement_cache_size": 0,
+        "prepared_statement_cache_size": 0,
+        "prepared_statement_name_func": lambda: f"__asyncpg_{uuid.uuid4()}__",
+    },
 )
 
 AsyncSessionLocal = async_sessionmaker(
