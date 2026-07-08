@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     ARGON2_PARALLELISM: int = 2
 
     # --- CORS ---
-    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
+    ALLOWED_ORIGINS: list[str] = ["https://umatani.vercel.app"]
 
     # --- Email verification ---
     EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS: int = 24
