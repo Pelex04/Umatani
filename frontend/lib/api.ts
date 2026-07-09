@@ -64,6 +64,20 @@ export const api = {
         `/schools${search ? `?search=${encodeURIComponent(search)}` : ""}`
       ),
     get: (id: string) => request<import("@/types").School>(`/schools/${id}`),
+    // Resolves an email to its university by domain. A 404 here means
+    // "no university matches this email" — an expected outcome while the
+    // person is still typing, not a real error — so it resolves to null
+    // instead of throwing.
+    matchByEmail: async (email: string): Promise<import("@/types").School | null> => {
+      try {
+        return await request<import("@/types").School>(
+          `/schools/match?email=${encodeURIComponent(email)}`
+        );
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 404) return null;
+        throw err;
+      }
+    },
   },
 
   categories: {

@@ -38,6 +38,25 @@ async def list_schools(
     return [SchoolPublicResponse.model_validate(s) for s in schools]
 
 
+@router.get("/match", response_model=SchoolPublicResponse)
+async def match_school_by_email(
+    email: str = Query(..., min_length=3, max_length=255),
+    db: AsyncSession = Depends(get_db),
+) -> SchoolPublicResponse:
+    """
+    Resolves a registration email to its university by domain. Used by the
+    register flow to validate the email and auto-select the school before
+    the person ever reaches the password step, instead of only discovering
+    a mismatch at final submission.
+    """
+    service = SchoolService(db)
+    try:
+        school = await service.match_by_email(email)
+    except SchoolError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message) from exc
+    return SchoolPublicResponse.model_validate(school)
+
+
 @router.get("/{school_id}", response_model=SchoolPublicResponse)
 async def get_school(
     school_id: uuid.UUID,

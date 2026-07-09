@@ -49,6 +49,23 @@ class SchoolService:
             raise SchoolError("School not found")
         return school
 
+    async def match_by_email(self, email: str) -> School:
+        """
+        Resolve a registration email to its school by domain, without ever
+        exposing the domain list itself to the client. Used by the register
+        flow so the frontend can validate + auto-select a school as the
+        person types, instead of only finding out at final submission.
+        """
+        domain = email.strip().lower().split("@")[-1]
+        school = await self.schools.get_by_domain(domain)
+        if (
+            school is None
+            or school.status != SchoolStatus.APPROVED
+            or not school.is_active
+        ):
+            raise SchoolError("No registered university matches this email address")
+        return school
+
     async def get_for_admin(self, school_id: uuid.UUID) -> School:
         school = await self.schools.get_by_id(school_id)
         if school is None:

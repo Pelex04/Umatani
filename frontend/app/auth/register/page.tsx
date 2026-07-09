@@ -9,7 +9,6 @@ import type { School } from "@/types";
 export default function RegisterPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -20,7 +19,36 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
-  useEffect(() => { api.schools.list().then(setSchools); }, []);
+  // Email → university matching. The backend resolves the domain to a
+  // school without ever handing the frontend a list of valid domains —
+  // this is the single source of truth, so there's nothing to keep in
+  // sync here if a new university's extension gets added later.
+  const [matchedSchool, setMatchedSchool] = useState<School | null>(null);
+  const [matchStatus, setMatchStatus] = useState<"idle" | "checking" | "matched" | "unmatched">("idle");
+
+  const emailFormatValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+  useEffect(() => {
+    if (!emailFormatValid) {
+      setMatchedSchool(null);
+      setMatchStatus("idle");
+      return;
+    }
+    setMatchStatus("checking");
+    const handle = setTimeout(() => {
+      api.schools.matchByEmail(email.trim())
+        .then(school => {
+          setMatchedSchool(school);
+          setMatchStatus(school ? "matched" : "unmatched");
+          setSchoolId(school ? school.id : "");
+        })
+        .catch(() => {
+          setMatchedSchool(null);
+          setMatchStatus("unmatched");
+        });
+    }, 400); // debounce while the person is still typing
+    return () => clearTimeout(handle);
+  }, [email, emailFormatValid]);
 
   const checks = { len: password.length >= 10, upper: /[A-Z]/.test(password), num: /[0-9]/.test(password) };
 
@@ -28,7 +56,11 @@ export default function RegisterPage() {
     e.preventDefault(); setError("");
     if (step === 0) {
       if (!fullName.trim()) return setError("Full name is required.");
-      if (!email.includes("@")) return setError("Enter a valid school email.");
+      if (!emailFormatValid) return setError("Enter a valid email address.");
+      if (matchStatus === "checking") return setError("Still checking your email — one moment.");
+      if (matchStatus !== "matched" || !matchedSchool) {
+        return setError("This isn't a recognised university email address. Use your official student email.");
+      }
     }
     if (step === 1 && !schoolId) return setError("Please select your university.");
     setStep(s => s + 1);
@@ -115,10 +147,32 @@ export default function RegisterPage() {
                   <div>
                     <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 7 }}>School email</label>
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@mubas.ac.mw" required className="input" />
-                    <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 6 }}>Must be your official university email address</p>
+                    {matchStatus === "idle" && (
+                      <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 6 }}>Must be your official university email address</p>
+                    )}
+                    {matchStatus === "checking" && (
+                      <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 6 }}>Checking university…</p>
+                    )}
+                    {matchStatus === "matched" && matchedSchool && (
+                      <p style={{ fontSize: 11.5, color: "var(--forest-600)", marginTop: 6, fontWeight: 500 }}>
+                        ✓ Recognised — {matchedSchool.name}
+                      </p>
+                    )}
+                    {matchStatus === "unmatched" && (
+                      <p style={{ fontSize: 11.5, color: "#C53030", marginTop: 6 }}>
+                        This email domain isn't linked to a registered university yet.
+                      </p>
+                    )}
                   </div>
                   {error && <ErrorMsg msg={error} />}
-                  <button type="submit" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", padding: "13px", marginTop: 4, borderRadius: 11 }}>Continue</button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={!fullName.trim() || matchStatus !== "matched"}
+                    style={{ width: "100%", justifyContent: "center", padding: "13px", marginTop: 4, borderRadius: 11, opacity: (!fullName.trim() || matchStatus !== "matched") ? 0.55 : 1, cursor: (!fullName.trim() || matchStatus !== "matched") ? "not-allowed" : "pointer" }}
+                  >
+                    Continue
+                  </button>
                 </form>
               </motion.div>
             )}
@@ -127,22 +181,24 @@ export default function RegisterPage() {
             {step === 1 && (
               <motion.div key="s1" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}>
                 <p className="eyebrow" style={{ marginBottom: 10 }}>Step 2 of 3</p>
-                <h1 style={{ fontFamily: "var(--font-serif)", fontWeight: 300, fontSize: 36, color: "var(--forest)", letterSpacing: "-0.025em", marginBottom: 36 }}>Your university</h1>
+                <h1 style={{ fontFamily: "var(--font-serif)", fontWeight: 300, fontSize: 36, color: "var(--forest)", letterSpacing: "-0.025em", marginBottom: 12 }}>Your university</h1>
+                <p style={{ fontSize: 13.5, color: "var(--ink-faint)", marginBottom: 24 }}>
+                  Detected from your email address — no need to pick it manually.
+                </p>
                 <form onSubmit={next} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {schools.map(s => (
-                      <button key={s.id} type="button" onClick={() => setSchoolId(s.id)} style={{
-                        padding: "14px 16px", borderRadius: 11, border: "1.5px solid",
-                        borderColor: schoolId === s.id ? "var(--forest)" : "var(--border-med)",
-                        background: schoolId === s.id ? "var(--forest-50)" : "white",
-                        cursor: "pointer", textAlign: "left", transition: "all 0.15s",
-                      }}>
-                        <div style={{ fontSize: 13.5, fontWeight: 500, color: "var(--forest)", marginBottom: 2 }}>{s.name}</div>
-                        <div style={{ fontSize: 12, color: "var(--ink-faint)" }}>{s.city}, {s.country}</div>
-                      </button>
-                    ))}
-                    {schools.length === 0 && <p style={{ fontSize: 13, color: "var(--ink-faint)", padding: "20px 0", textAlign: "center" }}>Loading universities…</p>}
-                  </div>
+                  {matchedSchool ? (
+                    <div style={{
+                      padding: "16px 18px", borderRadius: 11, border: "1.5px solid var(--forest)",
+                      background: "var(--forest-50)",
+                    }}>
+                      <div style={{ fontSize: 14.5, fontWeight: 500, color: "var(--forest)", marginBottom: 2 }}>{matchedSchool.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--ink-faint)" }}>{matchedSchool.city}, {matchedSchool.country}</div>
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: 13, color: "#C53030", padding: "20px 0", textAlign: "center" }}>
+                      No university detected — go back and check your email address.
+                    </p>
+                  )}
                   {error && <ErrorMsg msg={error} />}
                   <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
                     <button type="button" onClick={() => setStep(0)} className="btn btn-outline" style={{ flex: 1, justifyContent: "center" }}>Back</button>
