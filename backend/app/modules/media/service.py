@@ -12,9 +12,12 @@ two gaps:
    segments are controlled identifiers (purpose enum, UUID) rather than
    user input.
 
-Student ID images are uploaded to a private path and only ever exposed
-via a short-lived signed URL, generated on demand for an admin
-performing identity review — never a public/direct URL.
+Student ID images go to the PRIVATE bucket and are only ever exposed via
+a short-lived signed URL, generated on demand for an admin performing
+identity review — never a public/direct URL. Every other purpose
+(business logo/cover, portfolio items, review photos) goes to the
+PUBLIC bucket, since these need to render directly in <img> tags across
+business cards and listings without a signed-URL round trip per image.
 """
 import uuid
 
@@ -27,6 +30,14 @@ from app.modules.media.validation import (
 )
 
 settings = get_settings()
+
+_PRIVATE_PURPOSES = {UploadPurpose.STUDENT_ID}
+
+
+def _bucket_for(purpose: UploadPurpose) -> str:
+    if purpose in _PRIVATE_PURPOSES:
+        return settings.SUPABASE_STORAGE_BUCKET
+    return settings.SUPABASE_PUBLIC_BUCKET
 
 
 class MediaError(Exception):
@@ -62,7 +73,9 @@ class MediaService:
         key = f"{purpose.value}/{owner_id}/{uuid.uuid4()}.{detected.extension}"
 
         try:
-            await self.storage.upload(key, content, detected.mime_type)
+            await self.storage.upload(
+                key, content, detected.mime_type, bucket=_bucket_for(purpose)
+            )
         except StorageError as exc:
             raise MediaError("Could not store the uploaded file. Please try again.") from exc
 
@@ -75,8 +88,8 @@ class MediaService:
         """
         Confirms a storage key was actually issued for this owner and
         purpose, by checking the embedded path segments. Used by callers
-        (e.g. AuthService.submit_student_id) before trusting a
-        client-supplied storage_key.
+        (e.g. AuthService.submit_student_id, BusinessService.update)
+        before trusting a client-supplied storage_key.
         """
         parts = storage_key.split("/")
         if len(parts) != 3:
@@ -86,6 +99,23 @@ class MediaService:
 
     async def get_private_url(self, storage_key: str, *, expires_in_seconds: int = 600) -> str:
         try:
-            return await self.storage.get_signed_url(storage_key, expires_in_seconds)
+            return await self.storage.get_signed_url(
+                storage_key, expires_in_seconds, bucket=settings.SUPABASE_STORAGE_BUCKET
+            )
         except StorageError as exc:
             raise MediaError("Could not generate access link for this file") from exc
+
+    def get_public_url(self, storage_key: str, *, purpose: UploadPurpose) -> str:
+        """
+        Direct, permanent URL for a public-bucket object — no network
+        call, safe to build repeatedly (e.g. once per business card in a
+        search results page) since it's pure string construction.
+
+        Deliberately refuses STUDENT_ID: that purpose's bucket has no
+        public-read policy, so building a "public" URL for it would be
+        misleading — callers that need to view a student ID must use
+        get_private_url via the admin-only signed-URL endpoint instead.
+        """
+        if purpose in _PRIVATE_PURPOSES:
+            raise MediaError(f"{purpose.value} objects are never public")
+        return self.storage.get_public_url(storage_key, bucket=_bucket_for(purpose))

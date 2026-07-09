@@ -61,7 +61,17 @@ class Settings(BaseSettings):
     STORAGE_BACKEND: Literal["supabase", "local"] = "supabase"
     SUPABASE_URL: str | None = None
     SUPABASE_SERVICE_KEY: str | None = None
+    # Private bucket — student ID photos only. Never served via a direct/
+    # public URL, only short-lived signed URLs generated on demand for an
+    # admin performing identity review.
     SUPABASE_STORAGE_BUCKET: str = "umatani-media"
+    # Public bucket — business logos/covers, portfolio items, review
+    # photos. These need to render directly in <img> tags across every
+    # business card/listing without a signed-URL round trip per image
+    # (which would also break browser/CDN caching, since signed URLs
+    # expire). Configure this bucket as PUBLIC in Supabase; keep
+    # SUPABASE_STORAGE_BUCKET above PRIVATE.
+    SUPABASE_PUBLIC_BUCKET: str = "umatani-public"
 
     # --- Rate limiting ---
     RATE_LIMIT_DEFAULT: str = "100/minute"

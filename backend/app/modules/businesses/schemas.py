@@ -4,19 +4,41 @@ Businesses module schemas.
 Three response shapes:
 - BusinessPublicResponse: what visitors see — approved businesses only.
   Includes category/school names (not just IDs) for display-ready
-  rendering without extra frontend calls. Storage keys are never
-  included; the frontend must resolve them to signed URLs separately.
+  rendering without extra frontend calls. logo_url/cover_url are
+  computed from the stored key against the public media bucket — plain
+  string construction, safe to expose freely, no signed-URL round trip
+  needed since business media lives in the public bucket (unlike student
+  ID photos, which never appear in any response at all).
 - BusinessOwnerResponse: what the owner sees — includes their own
-  pending/suspended status, plus storage keys they'll need to
-  construct edit forms.
+  pending/suspended status.
 - BusinessAdminResponse: everything, for admin review pages.
 """
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl, computed_field, field_validator
 
 from app.modules.businesses.models import BusinessStatus, PortfolioItemType
+from app.modules.media.service import MediaService
+from app.modules.media.storage import get_storage_backend
+from app.modules.media.validation import UploadPurpose
+
+
+def _public_url_or_none(storage_key: str | None, *, purpose: UploadPurpose) -> str | None:
+    """
+    Builds a public media URL from a stored key. Safe to call even when
+    the storage backend can't actually be constructed (e.g. Supabase env
+    vars unset in a local/test environment) — falls back to None rather
+    than raising, since a missing image shouldn't break the whole
+    response.
+    """
+    if storage_key is None:
+        return None
+    try:
+        return MediaService(get_storage_backend()).get_public_url(storage_key, purpose=purpose)
+    except Exception:
+        return None
+
 
 
 class ServiceRequest(BaseModel):
@@ -41,10 +63,26 @@ class PortfolioItemResponse(BaseModel):
 
     id: uuid.UUID
     item_type: PortfolioItemType
-    storage_key_or_url: str
+    storage_key_or_url: str = Field(exclude=True)
     caption: str | None
     display_order: int
     created_at: datetime
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def display_url(self) -> str:
+        # This field doubles as either a full external URL (e.g. a
+        # pasted Instagram link) or a server-issued storage key,
+        # distinguished here rather than in the frontend so it never
+        # needs to guess which one it received.
+        if self.storage_key_or_url.startswith(("http://", "https://")):
+            return self.storage_key_or_url
+        purpose = (
+            UploadPurpose.PORTFOLIO_DOCUMENT
+            if self.item_type == PortfolioItemType.DOCUMENT
+            else UploadPurpose.PORTFOLIO_IMAGE
+        )
+        return _public_url_or_none(self.storage_key_or_url, purpose=purpose) or ""
 
 
 class BusinessCreateRequest(BaseModel):
@@ -108,8 +146,8 @@ class BusinessPublicResponse(BaseModel):
     description: str
     school_id: uuid.UUID
     category_id: uuid.UUID
-    logo_storage_key: str | None
-    cover_storage_key: str | None
+    logo_storage_key: str | None = Field(exclude=True)
+    cover_storage_key: str | None = Field(exclude=True)
     whatsapp: str | None
     phone: str | None
     contact_email: str | None
@@ -124,6 +162,16 @@ class BusinessPublicResponse(BaseModel):
     created_at: datetime
     services: list[ServiceResponse]
     portfolio_items: list[PortfolioItemResponse]
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def logo_url(self) -> str | None:
+        return _public_url_or_none(self.logo_storage_key, purpose=UploadPurpose.BUSINESS_LOGO)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def cover_url(self) -> str | None:
+        return _public_url_or_none(self.cover_storage_key, purpose=UploadPurpose.BUSINESS_COVER)
 
 
 class BusinessOwnerResponse(BusinessPublicResponse):
@@ -145,8 +193,13 @@ class BusinessListItemResponse(BaseModel):
     description: str
     school_id: uuid.UUID
     category_id: uuid.UUID
-    logo_storage_key: str | None
+    logo_storage_key: str | None = Field(exclude=True)
     is_available: bool
     average_rating: float
     review_count: int
     created_at: datetime
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def logo_url(self) -> str | None:
+        return _public_url_or_none(self.logo_storage_key, purpose=UploadPurpose.BUSINESS_LOGO)

@@ -83,7 +83,14 @@ export default function BusinessProfile() {
     <div style={{ minHeight: "100vh", background: "var(--cream)" }}>
       {/* Cover bar */}
       <div style={{ height: 220, background: "var(--forest)", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(201,168,76,0.06) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+        {biz.cover_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={biz.cover_url} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : (
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(201,168,76,0.06) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+        )}
+        {/* Gradient scrim so the back button / edit link stay legible over any cover photo */}
+        {biz.cover_url && <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(15,25,20,0.35), rgba(15,25,20,0.05) 40%)" }} />}
         <div style={{ position: "absolute", top: 20, left: 24, display: "flex", alignItems: "center", gap: 8 }}>
           <button onClick={() => router.back()} style={{ background: "rgba(247,244,239,0.1)", border: "none", borderRadius: 8, padding: "7px 14px", cursor: "pointer", color: "rgba(247,244,239,0.7)", fontSize: 12.5, fontFamily: "var(--font-sans)", display: "flex", alignItems: "center", gap: 6, transition: "background 0.15s" }}
           onMouseEnter={e => (e.currentTarget.style.background = "rgba(247,244,239,0.16)")}
@@ -101,12 +108,16 @@ export default function BusinessProfile() {
           <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
             <div style={{
               width: 72, height: 72, borderRadius: 16,
-              background: color.bg, color: color.text,
+              background: biz.logo_url ? "var(--cream)" : color.bg, color: color.text,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 26,
               border: "3px solid var(--cream)", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+              overflow: "hidden",
             }}>
-              {initials(biz.name)}
+              {biz.logo_url
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={biz.logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : initials(biz.name)}
             </div>
             <div style={{ paddingBottom: 4 }}>
               <h1 style={{ fontFamily: "var(--font-serif)", fontWeight: 400, fontSize: "clamp(22px,4vw,34px)", color: "var(--forest)", marginBottom: 4, letterSpacing: "-0.02em" }}>{biz.name}</h1>
@@ -182,8 +193,8 @@ export default function BusinessProfile() {
                       {biz.portfolio_items.map(item => (
                         <div key={item.id} style={{ aspectRatio: "1", borderRadius: 12, overflow: "hidden", background: "var(--forest-100)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                           {item.item_type === "image"
-                            ? <img src={item.storage_key_or_url} alt={item.caption ?? ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            : <a href={item.storage_key_or_url} target="_blank" rel="noopener" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, color: "var(--forest-600)", padding: 16, textAlign: "center" }}>
+                            ? <img src={item.display_url} alt={item.caption ?? ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : <a href={item.display_url} target="_blank" rel="noopener" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, color: "var(--forest-600)", padding: 16, textAlign: "center" }}>
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M11 3H17V9M17 3L9 11M8 4H4C3.45 4 3 4.45 3 5V16C3 16.55 3.45 17 4 17H15C15.55 17 16 16.55 16 16V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 <span style={{ fontSize: 11 }}>{item.caption ?? "Link"}</span>
                               </a>

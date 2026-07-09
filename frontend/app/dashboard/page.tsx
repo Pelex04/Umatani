@@ -216,6 +216,7 @@ export default function DashboardPage() {
                 {/* Edit profile */}
                 {tab === "profile" && (
                   <form onSubmit={saveProfile} style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 600 }}>
+                    <BusinessImageUpload biz={biz} onUpdated={b => setBiz(b)} />
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                       <div>
                         <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Business name</label>
@@ -302,6 +303,83 @@ function StatusBanner({ tone, title, body }: { tone: "amber" | "indigo" | "red";
         <p style={{ fontSize: 12.5, color: palette.soft, opacity: 0.8 }}>{body}</p>
       </div>
     </motion.div>
+  );
+}
+
+function BusinessImageUpload({ biz, onUpdated }: { biz: Business; onUpdated: (b: Business) => void }) {
+  const [uploading, setUploading] = useState<"logo" | "cover" | null>(null);
+  const [error, setError] = useState("");
+
+  const handleUpload = async (file: File, kind: "logo" | "cover") => {
+    setUploading(kind); setError("");
+    try {
+      const { storage_key } = await api.media.upload(file, kind === "logo" ? "business_logo" : "business_cover");
+      const updated = kind === "logo"
+        ? await api.businesses.updateLogo(storage_key)
+        : await api.businesses.updateCover(storage_key);
+      onUpdated(updated);
+    } catch (err: any) {
+      setError(err.message ?? `Could not upload ${kind}. Try again.`);
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  return (
+    <div style={{ marginBottom: 4 }}>
+      <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 8 }}>Business photos</label>
+
+      {/* Cover band with logo overlapping, mirrors the public profile layout */}
+      <div style={{ position: "relative", height: 120, borderRadius: 12, overflow: "hidden", background: "var(--forest-50)", border: "1px solid var(--border)" }}>
+        {biz.cover_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={biz.cover_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        )}
+        <UploadTrigger
+          label={uploading === "cover" ? "Uploading…" : biz.cover_url ? "Change cover" : "Add cover photo"}
+          onFile={f => handleUpload(f, "cover")}
+          disabled={uploading !== null}
+          style={{ position: "absolute", bottom: 8, right: 8 }}
+        />
+        <div style={{
+          position: "absolute", left: 14, bottom: -22, width: 56, height: 56, borderRadius: 12,
+          border: "3px solid white", overflow: "hidden", background: "white", boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+        }}>
+          {biz.logo_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={biz.logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          )}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 28 }}>
+        <UploadTrigger
+          label={uploading === "logo" ? "Uploading…" : biz.logo_url ? "Change logo" : "Add logo"}
+          onFile={f => handleUpload(f, "logo")}
+          disabled={uploading !== null}
+        />
+      </div>
+
+      {error && <p style={{ fontSize: 12, color: "#C53030", marginTop: 6 }}>{error}</p>}
+      <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 4 }}>JPG, PNG, or WebP.</p>
+    </div>
+  );
+}
+
+function UploadTrigger({ label, onFile, disabled, style }: { label: string; onFile: (f: File) => void; disabled?: boolean; style?: React.CSSProperties }) {
+  return (
+    <label style={{
+      display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 500,
+      color: "var(--forest)", background: "white", border: "1px solid var(--border-med)",
+      borderRadius: 8, padding: "6px 12px", cursor: disabled ? "default" : "pointer",
+      opacity: disabled ? 0.6 : 1, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", ...style,
+    }}>
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 11V3M8 3L5 6M8 3l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M2.5 11v1.5A1.5 1.5 0 004 14h8a1.5 1.5 0 001.5-1.5V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+      {label}
+      <input type="file" accept="image/jpeg,image/png,image/webp" disabled={disabled}
+        onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ""; }}
+        style={{ display: "none" }} />
+    </label>
   );
 }
 

@@ -156,6 +156,14 @@ export const api = {
       request("/businesses", { method: "POST", body: JSON.stringify(data) }, true),
     update: (data: object) =>
       request("/businesses/me", { method: "PATCH", body: JSON.stringify(data) }, true),
+    updateLogo: (storageKey: string) =>
+      request<import("@/types").Business>(
+        `/businesses/me/logo?storage_key=${encodeURIComponent(storageKey)}`, { method: "PATCH" }, true
+      ),
+    updateCover: (storageKey: string) =>
+      request<import("@/types").Business>(
+        `/businesses/me/cover?storage_key=${encodeURIComponent(storageKey)}`, { method: "PATCH" }, true
+      ),
   },
 
   reviews: {

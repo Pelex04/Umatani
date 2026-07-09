@@ -60,27 +60,27 @@ class TestLocalStorageBackend:
     async def test_upload_and_signed_url_round_trip(self, tmp_path) -> None:
         backend = LocalStorageBackend(base_dir=str(tmp_path))
         key = "business_logo/abc/test.png"
-        await backend.upload(key, b"fake-image-bytes", "image/png")
-        url = await backend.get_signed_url(key)
+        await backend.upload(key, b"fake-image-bytes", "image/png", bucket="umatani-media")
+        url = await backend.get_signed_url(key, bucket="umatani-media")
         assert "test.png" in url
 
     @pytest.mark.asyncio
     async def test_signed_url_for_missing_object_raises(self, tmp_path) -> None:
         backend = LocalStorageBackend(base_dir=str(tmp_path))
         with pytest.raises(StorageError):
-            await backend.get_signed_url("does/not/exist.png")
+            await backend.get_signed_url("does/not/exist.png", bucket="umatani-media")
 
     @pytest.mark.asyncio
     async def test_path_traversal_key_rejected(self, tmp_path) -> None:
         backend = LocalStorageBackend(base_dir=str(tmp_path))
         with pytest.raises(StorageError):
-            await backend.upload("../../etc/passwd", b"malicious", "text/plain")
+            await backend.upload("../../etc/passwd", b"malicious", "text/plain", bucket="umatani-media")
 
     @pytest.mark.asyncio
     async def test_delete_removes_object(self, tmp_path) -> None:
         backend = LocalStorageBackend(base_dir=str(tmp_path))
         key = "business_logo/abc/test.png"
-        await backend.upload(key, b"fake-image-bytes", "image/png")
-        await backend.delete(key)
+        await backend.upload(key, b"fake-image-bytes", "image/png", bucket="umatani-media")
+        await backend.delete(key, bucket="umatani-media")
         with pytest.raises(StorageError):
-            await backend.get_signed_url(key)
+            await backend.get_signed_url(key, bucket="umatani-media")

@@ -314,7 +314,11 @@ class TestLogoAndPortfolio:
             headers=verified_owner_headers,
         )
         assert resp.status_code == 200
-        assert resp.json()["logo_storage_key"] == storage_key
+        # logo_storage_key is excluded from the response now (same private-
+        # key-never-leaves-the-server pattern as student IDs); logo_url is
+        # the computed field clients actually get, and should be populated
+        # once a key has been set.
+        assert resp.json()["logo_url"] is not None
 
     async def test_logo_with_fabricated_key_rejected(
         self,

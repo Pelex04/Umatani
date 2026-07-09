@@ -26,7 +26,7 @@ export interface Service {
 export interface PortfolioItem {
   id: string;
   item_type: "image" | "video_link" | "document" | "external_link";
-  storage_key_or_url: string;
+  display_url: string;
   caption: string | null;
   display_order: number;
   created_at: string;
@@ -57,8 +57,8 @@ export interface Business {
   description: string;
   school_id: string;
   category_id: string;
-  logo_storage_key: string | null;
-  cover_storage_key: string | null;
+  logo_url: string | null;
+  cover_url: string | null;
   whatsapp: string | null;
   phone: string | null;
   contact_email: string | null;
@@ -84,7 +84,7 @@ export interface BusinessListItem {
   description: string;
   school_id: string;
   category_id: string;
-  logo_storage_key: string | null;
+  logo_url: string | null;
   is_available: boolean;
   average_rating: number;
   review_count: number;

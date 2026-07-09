@@ -60,7 +60,11 @@ async def upload_media(
     except MediaError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message) from exc
 
-    return MediaUploadResponse(storage_key=storage_key, purpose=purpose)
+    public_url = None
+    if purpose != UploadPurpose.STUDENT_ID:
+        public_url = service.get_public_url(storage_key, purpose=purpose)
+
+    return MediaUploadResponse(storage_key=storage_key, purpose=purpose, public_url=public_url)
 
 
 @admin_router.get("/student-id-url", response_model=SignedUrlResponse)
