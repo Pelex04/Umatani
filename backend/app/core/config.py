@@ -44,6 +44,10 @@ class Settings(BaseSettings):
 
     # --- Email verification ---
     EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS: int = 24
+    # Used to build links inside emails (verify-email, dashboard, etc).
+    # Point this at whatever the frontend's real current URL is — Vercel's
+    # default domain until a custom domain is wired up, then switch it.
+    FRONTEND_URL: str = "https://umatani.vercel.app"
     # Brevo's transactional HTTP API — not SMTP. Render (and many hosts)
     # block outbound raw SMTP sockets on free/starter tiers, which broke
     # verification email delivery entirely; the HTTP API rides over normal
