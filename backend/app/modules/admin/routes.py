@@ -50,6 +50,7 @@ class UserAdminResponse(BaseModel):
     role: str
     status: str
     school_id: str | None
+    student_id_submitted: bool
     created_at: datetime
 
 
@@ -98,6 +99,7 @@ async def list_users(
             id=str(u.id), email=u.email, full_name=u.full_name,
             role=u.role, status=u.status,
             school_id=str(u.school_id) if u.school_id else None,
+            student_id_submitted=u.student_id_storage_key is not None,
             created_at=u.created_at,
         )
         for u in users
@@ -128,6 +130,7 @@ async def suspend_user(
         id=str(user.id), email=user.email, full_name=user.full_name,
         role=user.role, status=user.status,
         school_id=str(user.school_id) if user.school_id else None,
+        student_id_submitted=user.student_id_storage_key is not None,
         created_at=user.created_at,
     )
 
@@ -153,6 +156,15 @@ async def verify_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"User status is '{user.status}', expected 'pending_id_review'",
         )
+    if user.student_id_storage_key is None:
+        # pending_id_review covers both "needs to submit an ID" and
+        # "submitted, awaiting review" — without this check an admin could
+        # approve someone who has no ID on file at all, defeating the
+        # purpose of ID verification entirely.
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This user has not submitted a student ID yet",
+        )
     user.status = UserStatus.VERIFIED
     await db.commit()
 
@@ -163,6 +175,7 @@ async def verify_user(
         id=str(user.id), email=user.email, full_name=user.full_name,
         role=user.role, status=user.status,
         school_id=str(user.school_id) if user.school_id else None,
+        student_id_submitted=user.student_id_storage_key is not None,
         created_at=user.created_at,
     )
 

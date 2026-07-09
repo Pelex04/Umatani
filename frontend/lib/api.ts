@@ -194,6 +194,10 @@ export const api = {
       request(`/admin/users/${id}/verify`, { method: "PATCH" }, true),
     suspendUser: (id: string) =>
       request(`/admin/users/${id}/suspend`, { method: "PATCH" }, true),
+    getStudentIdUrl: (userId: string) =>
+      request<{ url: string; expires_in_seconds: number }>(
+        `/admin/media/student-id-url?user_id=${encodeURIComponent(userId)}`, {}, true
+      ),
     schools: {
       list: () => request("/admin/schools", {}, true),
       approve: (id: string) =>

@@ -112,8 +112,8 @@ class TestAdminSignedUrl:
     ) -> None:
         token = await _register_and_get_access_token(app_client, approved_school)
         resp = await app_client.get(
-            "/api/v1/admin/media/signed-url",
-            params={"storage_key": "student_id/abc/fake.jpg"},
+            "/api/v1/admin/media/student-id-url",
+            params={"user_id": "00000000-0000-0000-0000-000000000000"},
             headers={"Authorization": f"Bearer {token}"},
         )
         assert resp.status_code == 403
@@ -121,21 +121,49 @@ class TestAdminSignedUrl:
     async def test_admin_can_get_signed_url_for_existing_object(
         self,
         app_client: AsyncClient,
+        db_session: AsyncSession,
         approved_school: School,
         admin_auth_headers: dict[str, str],
     ) -> None:
-        token = await _register_and_get_access_token(app_client, approved_school)
+        from app.modules.auth.service import AuthService
+
+        service = AuthService(db_session)
+        user, raw_token = await service.register(
+            email="rasta5@mubas.ac.mw",
+            password=VALID_PASSWORD,
+            full_name="Rasta Kadema",
+            school_id=approved_school.id,
+        )
+        await db_session.commit()
+        await service.verify_email(raw_token)
+        await db_session.commit()
+
+        login_resp = await app_client.post(
+            "/api/v1/auth/login",
+            json={"email": "rasta5@mubas.ac.mw", "password": VALID_PASSWORD},
+        )
+        access_token = login_resp.json()["access_token"]
+
         upload_resp = await app_client.post(
             "/api/v1/media/upload",
             data={"purpose": "student_id"},
             files={"file": ("id.png", SAMPLE_PNG_BYTES, "image/png")},
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": f"Bearer {access_token}"},
         )
         storage_key = upload_resp.json()["storage_key"]
 
-        signed_resp = await app_client.get(
-            "/api/v1/admin/media/signed-url",
+        # The signed-url endpoint resolves by user_id and reads the key the
+        # server already has on file — a raw storage_key uploaded but never
+        # attached via /auth/student-id shouldn't be resolvable yet.
+        await app_client.post(
+            "/api/v1/auth/student-id",
             params={"storage_key": storage_key},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        signed_resp = await app_client.get(
+            "/api/v1/admin/media/student-id-url",
+            params={"user_id": str(user.id)},
             headers=admin_auth_headers,
         )
         assert signed_resp.status_code == 200

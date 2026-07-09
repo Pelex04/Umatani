@@ -27,6 +27,8 @@ export default function AdminDashboard() {
   const [rows,    setRows]    = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting,  setActing]  = useState<string | null>(null);
+  const [viewingId, setViewingId] = useState<string | null>(null);
+  const [viewError, setViewError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== "admin")) { router.push("/"); return; }
@@ -49,6 +51,18 @@ export default function AdminDashboard() {
 
   const act = async (fn: () => Promise<any>, id: string) => {
     setActing(id); try { await fn(); await loadTab(tab); } finally { setActing(null); }
+  };
+
+  const viewStudentId = async (userId: string) => {
+    setViewingId(userId); setViewError(null);
+    try {
+      const { url } = await api.admin.getStudentIdUrl(userId);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err: any) {
+      setViewError(err.message ?? "Could not load this ID photo.");
+    } finally {
+      setViewingId(null);
+    }
   };
 
   if (authLoading) return <AdminSkeleton />;
@@ -122,6 +136,7 @@ export default function AdminDashboard() {
         {tab === "users" && (
           <div>
             <p style={{ fontSize: 12.5, color: "var(--ink-faint)", marginBottom: 16 }}>{rows.length} users</p>
+            {viewError && <p style={{ fontSize: 12.5, color: "#C53030", marginBottom: 12 }}>{viewError}</p>}
             {loading ? <TableSkeleton /> : (
               <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 14, overflow: "hidden" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -142,11 +157,20 @@ export default function AdminDashboard() {
                         <td style={{ padding: "12px 16px", color: "var(--ink-faint)", fontSize: 12 }}>{formatDate(u.created_at)}</td>
                         <td style={{ padding: "12px 16px" }}>
                           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                            {u.status === "pending_id_review" && (
+                            {u.status === "pending_id_review" && u.student_id_submitted && (
+                              <button onClick={() => viewStudentId(u.id)} disabled={viewingId === u.id}
+                                style={{ fontSize: 12, fontWeight: 500, color: "var(--forest-600)", background: "none", border: "1px solid var(--border-med)", borderRadius: 6, padding: "5px 12px", cursor: "pointer" }}>
+                                {viewingId === u.id ? "Loading…" : "View ID"}
+                              </button>
+                            )}
+                            {u.status === "pending_id_review" && u.student_id_submitted && (
                               <button onClick={() => act(() => api.admin.verifyUser(u.id), u.id)} disabled={acting === u.id}
                                 style={{ fontSize: 12, fontWeight: 600, color: "var(--forest-600)", background: "var(--forest-100)", border: "none", borderRadius: 6, padding: "5px 12px", cursor: "pointer" }}>
                                 {acting === u.id ? "…" : "Verify"}
                               </button>
+                            )}
+                            {u.status === "pending_id_review" && !u.student_id_submitted && (
+                              <span style={{ fontSize: 12, color: "var(--ink-faint)", fontStyle: "italic" }}>Awaiting ID submission</span>
                             )}
                             {u.status !== "suspended" && (
                               <button onClick={() => act(() => api.admin.suspendUser(u.id), `${u.id}s`)} disabled={acting === `${u.id}s`}

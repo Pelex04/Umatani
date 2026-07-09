@@ -15,8 +15,10 @@ portfolio) will gain a business-ownership check once the Businesses
 module exists; until then they're also scoped to the uploading user.
 """
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
+from app.core.database import get_db
 from app.core.deps import get_current_user, require_role
 from app.modules.auth.models import User, UserRole
 from app.modules.media.deps import get_storage
@@ -61,19 +63,38 @@ async def upload_media(
     return MediaUploadResponse(storage_key=storage_key, purpose=purpose)
 
 
-@admin_router.get("/signed-url", response_model=SignedUrlResponse)
-async def get_signed_url(
-    storage_key: str = Query(..., min_length=1, max_length=512),
+@admin_router.get("/student-id-url", response_model=SignedUrlResponse)
+async def get_student_id_url(
+    user_id: str = Query(..., min_length=1),
+    db: AsyncSession = Depends(get_db),
     storage: StorageBackend = Depends(get_storage),
 ) -> SignedUrlResponse:
     """
     Admin-only — used during student-ID verification review to view a
     private upload without ever exposing a permanent public URL.
+
+    Takes user_id rather than a raw storage_key: the storage key itself
+    never needs to leave the server at all this way, consistent with
+    UserPublicResponse never serializing it to regular users either.
     """
+    import uuid
+
+    try:
+        uid = uuid.UUID(user_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID") from exc
+
+    user = await db.get(User, uid)
+    if user is None or user.student_id_storage_key is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No student ID has been submitted for this user",
+        )
+
     service = MediaService(storage)
     expires_in = 600
     try:
-        url = await service.get_private_url(storage_key, expires_in_seconds=expires_in)
+        url = await service.get_private_url(user.student_id_storage_key, expires_in_seconds=expires_in)
     except MediaError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message) from exc
     return SignedUrlResponse(url=url, expires_in_seconds=expires_in)
