@@ -135,6 +135,28 @@ class AuthService:
         # keeping I/O concerns out of business logic.
         return user, raw_token
 
+    async def resend_verification_email(self, email: str) -> tuple[User, str] | None:
+        """
+        Issues a fresh verification token for an existing, not-yet-verified
+        account. Returns None (rather than raising) when there's nothing to
+        resend — no account, already verified, or suspended — so the route
+        layer can give a generic response either way and avoid confirming
+        or denying whether a given email is registered.
+        """
+        email = email.lower().strip()
+        user = await self.users.get_by_email(email)
+        if user is None or user.status != UserStatus.PENDING_EMAIL_VERIFICATION:
+            return None
+
+        raw_token = secrets.token_urlsafe(32)
+        await self.verification_tokens.create(
+            user_id=user.id,
+            token_hash=_hash_opaque_token(raw_token),
+            expires_at=datetime.now(UTC)
+            + timedelta(hours=settings.EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS),
+        )
+        return user, raw_token
+
     async def verify_email(self, raw_token: str) -> User:
         token_hash = _hash_opaque_token(raw_token)
 

@@ -50,10 +50,22 @@ async def send_email(*, to: str, subject: str, html: str, plain: str) -> None:
         return
 
     loop = asyncio.get_event_loop()
-    await loop.run_in_executor(
-        None,
-        partial(_send_smtp, to=to, subject=subject, html=html, plain=plain),
-    )
+    try:
+        await loop.run_in_executor(
+            None,
+            partial(_send_smtp, to=to, subject=subject, html=html, plain=plain),
+        )
+    except Exception:
+        # Email delivery is best-effort and must never take down the
+        # request that triggered it (e.g. registration already committed
+        # the account to the database by this point — losing the email
+        # shouldn't lose the account too). Many hosts, including Render's
+        # free/starter tiers, block outbound raw SMTP entirely, which
+        # surfaces as "Network is unreachable" rather than an auth or
+        # timeout error — that's an infrastructure/transport problem, not
+        # a per-request one, so retrying here won't help; it needs a
+        # different transport (see module docstring).
+        logger.exception(f"Failed to send email to {to} (subject: {subject!r})")
 
 
 async def send_verification_email(*, to: str, full_name: str, token: str) -> None:

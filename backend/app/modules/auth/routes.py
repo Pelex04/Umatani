@@ -17,6 +17,7 @@ from app.modules.auth.models import User
 from app.modules.auth.schemas import (
     EmailVerificationRequest,
     RefreshTokenRequest,
+    ResendVerificationRequest,
     StudentIdSubmissionResponse,
     TokenPairResponse,
     UserLoginRequest,
@@ -75,6 +76,29 @@ async def verify_email(
         await db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message) from exc
     return UserPublicResponse.model_validate(user)
+
+
+@router.post("/resend-verification", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(get_settings().RATE_LIMIT_AUTH)
+async def resend_verification(
+    request: Request,
+    payload: ResendVerificationRequest,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """
+    Always returns 204 regardless of whether the email matched an account —
+    same information-disclosure precaution as register()'s generic error —
+    so this can't be used to enumerate which emails are registered.
+    """
+    service = AuthService(db)
+    result = await service.resend_verification_email(payload.email)
+    await db.commit()
+    if result is not None:
+        user, verification_token = result
+        from app.core.email import send_verification_email
+        await send_verification_email(
+            to=user.email, full_name=user.full_name, token=verification_token
+        )
 
 
 @router.post("/login", response_model=TokenPairResponse)

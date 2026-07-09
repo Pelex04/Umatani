@@ -51,6 +51,10 @@ class EmailVerificationRequest(BaseModel):
     token: str
 
 
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
 class StudentIdSubmissionResponse(BaseModel):
     message: str
     status: UserStatus
