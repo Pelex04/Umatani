@@ -56,6 +56,16 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ refresh_token }),
       }, true),
+    verifyEmail: (token: string) =>
+      request<import("@/types").User>("/auth/verify-email", {
+        method: "POST",
+        body: JSON.stringify({ token }),
+      }),
+    resendVerification: (email: string) =>
+      request("/auth/resend-verification", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
   },
 
   schools: {
