@@ -44,11 +44,14 @@ class Settings(BaseSettings):
 
     # --- Email verification ---
     EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS: int = 24
-    SMTP_HOST: str | None = None
-    SMTP_PORT: int = 587
-    SMTP_USER: str | None = None
-    SMTP_PASSWORD: str | None = None
-    SMTP_FROM_EMAIL: str = "no-reply@umatani.app"
+    # Brevo's transactional HTTP API — not SMTP. Render (and many hosts)
+    # block outbound raw SMTP sockets on free/starter tiers, which broke
+    # verification email delivery entirely; the HTTP API rides over normal
+    # HTTPS instead, which is never blocked. Get a key at
+    # https://app.brevo.com/settings/keys/api
+    BREVO_API_KEY: str | None = None
+    EMAIL_FROM_ADDRESS: str = "no-reply@umatani.app"
+    EMAIL_FROM_NAME: str = "UMATANI"
 
     # --- Object storage (abstracted; Supabase Storage default impl) ---
     STORAGE_BACKEND: Literal["supabase", "local"] = "supabase"

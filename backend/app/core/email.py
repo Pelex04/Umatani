@@ -1,46 +1,35 @@
 """
 Email service.
 
-Uses Python's built-in smtplib with async execution in a thread pool so
-SMTP I/O doesn't block the event loop. No external email SDK dependency.
+Sends via Brevo's transactional HTTP API (https://api.brevo.com/v3/smtp/email)
+using httpx, not raw SMTP. Many hosts — including Render's free/starter
+tiers — block outbound SMTP sockets entirely to prevent spam abuse, which
+previously surfaced as "OSError: Network is unreachable" and, worse, took
+the whole request down with it. HTTPS is never blocked the same way, and
+httpx is natively async, so this also drops the old thread-pool-executor
+indirection smtplib needed.
 
-In development (ENVIRONMENT != production and SMTP_HOST is unset), emails
-are printed to stdout so the verification flow is testable without a real
-mail server — the token appears in the console.
+In development (BREVO_API_KEY unset), emails are printed to stdout so the
+verification flow is testable without hitting a real provider — the token
+appears in the console.
 
-In production, configure SMTP_HOST/SMTP_USER/SMTP_PASSWORD via environment
-variables (e.g. Brevo, Mailgun, or a self-hosted SMTP relay).
+In production, set BREVO_API_KEY (from https://app.brevo.com/settings/keys/api),
+plus optionally EMAIL_FROM_ADDRESS / EMAIL_FROM_NAME.
 """
-import asyncio
 import logging
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from functools import partial
+
+import httpx
 
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-
-def _send_smtp(*, to: str, subject: str, html: str, plain: str) -> None:
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = settings.SMTP_FROM_EMAIL
-    msg["To"] = to
-    msg.attach(MIMEText(plain, "plain"))
-    msg.attach(MIMEText(html, "html"))
-
-    with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as smtp:
-        smtp.ehlo()
-        smtp.starttls()
-        smtp.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-        smtp.sendmail(settings.SMTP_FROM_EMAIL, to, msg.as_string())
+BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
 
 async def send_email(*, to: str, subject: str, html: str, plain: str) -> None:
-    if not settings.SMTP_HOST:
+    if not settings.BREVO_API_KEY:
         # Development fallback — print to stdout so the flow is testable.
         logger.info("=" * 60)
         logger.info(f"[DEV EMAIL] To: {to}")
@@ -49,22 +38,29 @@ async def send_email(*, to: str, subject: str, html: str, plain: str) -> None:
         logger.info("=" * 60)
         return
 
-    loop = asyncio.get_event_loop()
+    payload = {
+        "sender": {"name": settings.EMAIL_FROM_NAME, "email": settings.EMAIL_FROM_ADDRESS},
+        "to": [{"email": to}],
+        "subject": subject,
+        "htmlContent": html,
+        "textContent": plain,
+    }
+    headers = {
+        "api-key": settings.BREVO_API_KEY,
+        "content-type": "application/json",
+        "accept": "application/json",
+    }
+
     try:
-        await loop.run_in_executor(
-            None,
-            partial(_send_smtp, to=to, subject=subject, html=html, plain=plain),
-        )
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(BREVO_API_URL, json=payload, headers=headers)
+            response.raise_for_status()
     except Exception:
         # Email delivery is best-effort and must never take down the
         # request that triggered it (e.g. registration already committed
         # the account to the database by this point — losing the email
-        # shouldn't lose the account too). Many hosts, including Render's
-        # free/starter tiers, block outbound raw SMTP entirely, which
-        # surfaces as "Network is unreachable" rather than an auth or
-        # timeout error — that's an infrastructure/transport problem, not
-        # a per-request one, so retrying here won't help; it needs a
-        # different transport (see module docstring).
+        # shouldn't lose the account too). Callers should not assume
+        # delivery succeeded just because this didn't raise.
         logger.exception(f"Failed to send email to {to} (subject: {subject!r})")
 
 
