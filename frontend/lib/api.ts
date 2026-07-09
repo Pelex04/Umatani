@@ -30,6 +30,23 @@ async function request<T>(
   return res.json();
 }
 
+// Separate from request() because FormData needs the browser to set its
+// own multipart Content-Type (with the boundary) — setting it manually,
+// or forcing application/json like request() does, breaks the upload.
+async function uploadRequest<T>(path: string, formData: FormData): Promise<T> {
+  const headers: Record<string, string> = {};
+  const token = getToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE}${path}`, { method: "POST", headers, body: formData });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "An error occurred" }));
+    throw new ApiError(err.detail ?? "An error occurred", res.status);
+  }
+  return res.json();
+}
+
 export class ApiError extends Error {
   constructor(message: string, public status: number) {
     super(message);
@@ -66,6 +83,21 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ email }),
       }),
+    submitStudentId: (storageKey: string) =>
+      request(`/auth/student-id?storage_key=${encodeURIComponent(storageKey)}`, {
+        method: "POST",
+      }, true),
+  },
+
+  media: {
+    // purpose must match one of the backend's UploadPurpose values —
+    // "student_id" is the only one currently used from the frontend.
+    upload: (file: File, purpose: string) => {
+      const formData = new FormData();
+      formData.append("purpose", purpose);
+      formData.append("file", file);
+      return uploadRequest<{ storage_key: string; purpose: string }>("/media/upload", formData);
+    },
   },
 
   schools: {

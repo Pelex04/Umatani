@@ -12,7 +12,7 @@ import type { Business, Category } from "@/types";
 type Tab = "overview" | "profile" | "services";
 
 export default function DashboardPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refresh } = useAuth();
   const router = useRouter();
   const [biz,     setBiz]     = useState<Business | null>(null);
   const [cats,    setCats]    = useState<Category[]>([]);
@@ -94,23 +94,26 @@ export default function DashboardPage() {
 
       <div style={{ maxWidth: 1060, margin: "0 auto", padding: "28px 28px 60px" }}>
         {/* Account status banner */}
-        {user.status !== "verified" && (
-          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-            style={{ background: user.status === "pending_email_verification" ? "#FBF4E0" : "#EEF2FF", border: `1px solid ${user.status === "pending_email_verification" ? "rgba(201,168,76,0.3)" : "rgba(99,102,241,0.2)"}`, borderRadius: 12, padding: "14px 18px", marginBottom: 24, display: "flex", alignItems: "flex-start", gap: 12 }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: user.status === "pending_email_verification" ? "rgba(201,168,76,0.15)" : "rgba(99,102,241,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke={user.status === "pending_email_verification" ? "#A8882E" : "#4F46E5"} strokeWidth="1.5"/><path d="M8 5v3.5M8 11h.01" stroke={user.status === "pending_email_verification" ? "#A8882E" : "#4F46E5"} strokeWidth="1.5" strokeLinecap="round"/></svg>
-            </div>
-            <div>
-              <p style={{ fontSize: 13.5, fontWeight: 600, color: user.status === "pending_email_verification" ? "#A8882E" : "#4338CA", marginBottom: 2 }}>
-                {user.status === "pending_email_verification" ? "Verify your email address" : "Student ID under review"}
-              </p>
-              <p style={{ fontSize: 12.5, color: user.status === "pending_email_verification" ? "#856A1A" : "#4F46E5", opacity: 0.8 }}>
-                {user.status === "pending_email_verification"
-                  ? "Check your school inbox and click the verification link."
-                  : "Your ID has been submitted. You'll be notified once approved."}
-              </p>
-            </div>
-          </motion.div>
+        {user.status === "pending_email_verification" && (
+          <StatusBanner tone="amber" title="Verify your email address" body="Check your school inbox and click the verification link." />
+        )}
+
+        {user.status === "pending_id_review" && !user.student_id_submitted && (
+          <div style={{ background: "#EEF2FF", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 12, padding: "18px 20px", marginBottom: 24 }}>
+            <p style={{ fontSize: 13.5, fontWeight: 600, color: "#4338CA", marginBottom: 4 }}>Submit your student ID</p>
+            <p style={{ fontSize: 12.5, color: "#4F46E5", opacity: 0.8, marginBottom: 14 }}>
+              One last step — upload a photo of your student ID so an admin can verify your account.
+            </p>
+            <StudentIdUpload onSubmitted={refresh} />
+          </div>
+        )}
+
+        {user.status === "pending_id_review" && user.student_id_submitted && (
+          <StatusBanner tone="indigo" title="Student ID under review" body="Your ID has been submitted. You'll be notified once approved." />
+        )}
+
+        {user.status === "suspended" && (
+          <StatusBanner tone="red" title="Account suspended" body="Contact support if you believe this is a mistake." />
         )}
 
         {/* No business yet */}
@@ -279,6 +282,65 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function StatusBanner({ tone, title, body }: { tone: "amber" | "indigo" | "red"; title: string; body: string }) {
+  const palette = {
+    amber:  { bg: "#FBF4E0", border: "rgba(201,168,76,0.3)",  iconBg: "rgba(201,168,76,0.15)", strong: "#A8882E", soft: "#856A1A" },
+    indigo: { bg: "#EEF2FF", border: "rgba(99,102,241,0.2)",  iconBg: "rgba(99,102,241,0.1)",  strong: "#4338CA", soft: "#4F46E5" },
+    red:    { bg: "#FFF0F0", border: "rgba(192,57,43,0.2)",   iconBg: "rgba(192,57,43,0.1)",   strong: "#C0392B", soft: "#C0392B" },
+  }[tone];
+  return (
+    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+      style={{ background: palette.bg, border: `1px solid ${palette.border}`, borderRadius: 12, padding: "14px 18px", marginBottom: 24, display: "flex", alignItems: "flex-start", gap: 12 }}>
+      <div style={{ width: 32, height: 32, borderRadius: "50%", background: palette.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke={palette.strong} strokeWidth="1.5"/><path d="M8 5v3.5M8 11h.01" stroke={palette.strong} strokeWidth="1.5" strokeLinecap="round"/></svg>
+      </div>
+      <div>
+        <p style={{ fontSize: 13.5, fontWeight: 600, color: palette.strong, marginBottom: 2 }}>{title}</p>
+        <p style={{ fontSize: 12.5, color: palette.soft, opacity: 0.8 }}>{body}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+function StudentIdUpload({ onSubmitted }: { onSubmitted: () => void | Promise<void> }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file) return;
+    setSubmitting(true); setError("");
+    try {
+      const { storage_key } = await api.media.upload(file, "student_id");
+      await api.auth.submitStudentId(storage_key);
+      await onSubmitted();
+    } catch (err: any) {
+      setError(err.message ?? "Could not submit your student ID. Try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
+      <label style={{
+        display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, fontWeight: 500,
+        color: "#4338CA", background: "white", border: "1px solid rgba(99,102,241,0.3)",
+        borderRadius: 9, padding: "9px 14px", cursor: "pointer",
+      }}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 11V3M8 3L5 6M8 3l3 3" stroke="#4338CA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M2.5 11v1.5A1.5 1.5 0 004 14h8a1.5 1.5 0 001.5-1.5V11" stroke="#4338CA" strokeWidth="1.5" strokeLinecap="round"/></svg>
+        {file ? file.name : "Choose photo"}
+        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setFile(e.target.files?.[0] ?? null)} style={{ display: "none" }} />
+      </label>
+      <button type="submit" disabled={!file || submitting} className="btn btn-primary" style={{ padding: "9px 18px", fontSize: 12.5, opacity: (!file || submitting) ? 0.6 : 1 }}>
+        {submitting ? "Uploading…" : "Submit for review"}
+      </button>
+      {error && <p style={{ width: "100%", fontSize: 12, color: "#C53030", marginTop: 2 }}>{error}</p>}
+    </form>
   );
 }
 

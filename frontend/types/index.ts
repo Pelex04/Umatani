@@ -105,6 +105,7 @@ export interface User {
   role: "business_owner" | "admin";
   status: "pending_email_verification" | "pending_id_review" | "verified" | "suspended";
   school_id: string | null;
+  student_id_submitted: boolean;
   created_at: string;
 }
 

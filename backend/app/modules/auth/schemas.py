@@ -9,7 +9,7 @@ leaking them by adding a field later.
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field, field_validator
 
 from app.modules.auth.models import UserRole, UserStatus
 
@@ -61,7 +61,14 @@ class StudentIdSubmissionResponse(BaseModel):
 
 
 class UserPublicResponse(BaseModel):
-    """Safe-to-return user representation. No password hash, no student ID."""
+    """
+    Safe-to-return user representation. No password hash, and the raw
+    student ID storage key never leaves this schema — student_id_storage_key
+    is only held here long enough to derive student_id_submitted below,
+    then excluded from serialization. Clients need to know *whether* an ID
+    was submitted (to render the right dashboard state) but never need the
+    key itself.
+    """
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -72,3 +79,9 @@ class UserPublicResponse(BaseModel):
     status: UserStatus
     school_id: uuid.UUID | None
     created_at: datetime
+    student_id_storage_key: str | None = Field(default=None, exclude=True)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def student_id_submitted(self) -> bool:
+        return self.student_id_storage_key is not None
