@@ -55,6 +55,15 @@ async def send_email(*, to: str, subject: str, html: str, plain: str) -> None:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(BREVO_API_URL, json=payload, headers=headers)
             response.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        # Brevo's error responses include a JSON body explaining exactly
+        # why (bad key, wrong key type, unrecognised sender, etc.) — log it
+        # directly instead of just the status code, or every failure looks
+        # identical and has to be guessed at from Render's dashboard blind.
+        logger.error(
+            f"Failed to send email to {to} (subject: {subject!r}): "
+            f"{exc.response.status_code} — {exc.response.text}"
+        )
     except Exception:
         # Email delivery is best-effort and must never take down the
         # request that triggered it (e.g. registration already committed
