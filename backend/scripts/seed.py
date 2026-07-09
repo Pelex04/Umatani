@@ -2,10 +2,11 @@
 Seed script — populates the database with demo data for manual testing.
 
 Creates:
-  - 1 approved school (MUBAS)
+  - 6 approved schools: MUBAS, University of Malawi (UNIMA), MUST, Mzuzu
+    University, Kamuzu University of Health Sciences (KUHeS), LUANAR
   - 12 categories (matching spec examples)
   - 1 admin account
-  - 3 verified business owners with approved business profiles
+  - 3 verified business owners with approved business profiles (MUBAS)
   - Sample services and reviews on each business
 
 Run with:
@@ -25,14 +26,56 @@ from app.modules.categories.schemas import slugify
 from app.modules.reviews.models import Review
 from app.modules.schools.models import School, SchoolStatus
 
-SCHOOL = {
-    "name": "Malawi University of Business and Applied Sciences",
-    "country": "Malawi",
-    "city": "Blantyre",
-    "email_domain": "mubas.ac.mw",
-    "status": SchoolStatus.APPROVED,
-    "is_active": True,
-}
+SCHOOLS = [
+    {
+        "name": "Malawi University of Business and Applied Sciences",
+        "country": "Malawi",
+        "city": "Blantyre",
+        "email_domain": "mubas.ac.mw",
+        "status": SchoolStatus.APPROVED,
+        "is_active": True,
+    },
+    {
+        "name": "University of Malawi",
+        "country": "Malawi",
+        "city": "Zomba",
+        "email_domain": "unima.ac.mw",
+        "status": SchoolStatus.APPROVED,
+        "is_active": True,
+    },
+    {
+        "name": "Malawi University of Science and Technology",
+        "country": "Malawi",
+        "city": "Thyolo",
+        "email_domain": "must.ac.mw",
+        "status": SchoolStatus.APPROVED,
+        "is_active": True,
+    },
+    {
+        "name": "Mzuzu University",
+        "country": "Malawi",
+        "city": "Mzuzu",
+        "email_domain": "mzuni.ac.mw",
+        "status": SchoolStatus.APPROVED,
+        "is_active": True,
+    },
+    {
+        "name": "Kamuzu University of Health Sciences",
+        "country": "Malawi",
+        "city": "Blantyre",
+        "email_domain": "medcol.mw",
+        "status": SchoolStatus.APPROVED,
+        "is_active": True,
+    },
+    {
+        "name": "Lilongwe University of Agriculture and Natural Resources",
+        "country": "Malawi",
+        "city": "Lilongwe",
+        "email_domain": "luanar.ac.mw",
+        "status": SchoolStatus.APPROVED,
+        "is_active": True,
+    },
+]
 
 CATEGORIES = [
     "Graphic Design", "Programming", "Photography", "Baking",
@@ -120,16 +163,25 @@ async def seed() -> None:
     async with AsyncSessionLocal() as db:
         from sqlalchemy import select
 
-        # School
-        result = await db.execute(select(School).where(School.email_domain == SCHOOL["email_domain"]))
-        school = result.scalar_one_or_none()
-        if not school:
-            school = School(id=uuid.uuid4(), **SCHOOL)
-            db.add(school)
-            await db.flush()
-            print(f"  ✓ School: {school.name}")
-        else:
-            print(f"  – School already exists: {school.name}")
+        # Schools
+        schools_by_domain: dict[str, School] = {}
+        for school_data in SCHOOLS:
+            result = await db.execute(
+                select(School).where(School.email_domain == school_data["email_domain"])
+            )
+            existing_school = result.scalar_one_or_none()
+            if not existing_school:
+                existing_school = School(id=uuid.uuid4(), **school_data)
+                db.add(existing_school)
+                await db.flush()
+                print(f"  ✓ School: {existing_school.name}")
+            else:
+                print(f"  – School already exists: {existing_school.name}")
+            schools_by_domain[school_data["email_domain"]] = existing_school
+
+        # Sample owners/businesses below are all @mubas.ac.mw addresses —
+        # anchor them to that school specifically.
+        school = schools_by_domain["mubas.ac.mw"]
 
         # Categories
         cat_map: dict[str, Category] = {}
