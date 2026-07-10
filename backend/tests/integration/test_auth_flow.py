@@ -198,11 +198,33 @@ class TestEmailVerificationAndLogin:
         await db_session.commit()
         assert verified_user.status == UserStatus.PENDING_ID_REVIEW
 
-        # Token is single-use — verifying again must fail.
-        from app.modules.auth.service import AuthError
+        # Re-using an already-consumed token is now a soft success, not a
+        # hard failure — a common, legitimate cause is email security
+        # scanners (mobile carriers, Outlook/Gmail safe-links, corporate
+        # proxies) pre-fetching the link before the person actually clicks
+        # it, which silently burns the token first. Since the account is
+        # already verified either way, the person's real click should
+        # succeed rather than show a confusing "invalid token" error for a
+        # link they haven't used yet from their own point of view.
+        reused_result = await service.verify_email(raw_token)
+        assert reused_result.id == user.id
+        assert reused_result.status == UserStatus.PENDING_ID_REVIEW
 
+    async def test_verify_email_with_bogus_token_still_fails(
+        self, db_session: AsyncSession
+    ) -> None:
+        """
+        The soft-success path only applies to tokens that exist, were
+        already used, AND whose owner already progressed past
+        pending_email_verification. A token that never existed at all
+        must still hard-fail — otherwise verify-email would accept
+        arbitrary strings.
+        """
+        from app.modules.auth.service import AuthError, AuthService
+
+        service = AuthService(db_session)
         with pytest.raises(AuthError):
-            await service.verify_email(raw_token)
+            await service.verify_email("this-token-was-never-issued")
 
 
 class TestRefreshTokenRotation:

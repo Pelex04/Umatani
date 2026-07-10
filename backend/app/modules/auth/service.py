@@ -167,7 +167,33 @@ class AuthService:
             )
         )
         token_record = result.scalar_one_or_none()
-        if token_record is None or _as_aware_utc(token_record.expires_at) < datetime.now(UTC):
+
+        if token_record is None:
+            # The token might exist but already be used — a very common,
+            # entirely legitimate cause is email security scanners (mobile
+            # carriers, Outlook/Gmail safe-links, corporate proxies)
+            # pre-fetching links in the email to scan them before the
+            # person ever clicks, silently burning the one-time token. If
+            # that's what happened, the owning account already progressed
+            # past email verification — so the person's actual click
+            # should succeed, not fail with a confusing "invalid token"
+            # for a link they never used yet. Anything else (token never
+            # existed, or exists but its owner never verified) stays a
+            # hard error.
+            stale = await self.db.execute(
+                select(EmailVerificationToken).where(
+                    EmailVerificationToken.token_hash == token_hash,
+                    EmailVerificationToken.used_at.is_not(None),
+                )
+            )
+            stale_record = stale.scalar_one_or_none()
+            if stale_record is not None:
+                owner = await self.db.get(User, stale_record.user_id)
+                if owner is not None and owner.status != UserStatus.PENDING_EMAIL_VERIFICATION:
+                    return owner
+            raise AuthError("Invalid or expired verification token")
+
+        if _as_aware_utc(token_record.expires_at) < datetime.now(UTC):
             raise AuthError("Invalid or expired verification token")
 
         user = await self.db.get(User, token_record.user_id)
