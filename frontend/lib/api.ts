@@ -5,6 +5,23 @@ function getToken(): string | null {
   return localStorage.getItem("access_token");
 }
 
+// FastAPI's error body isn't a single shape: most of our own handlers raise
+// HTTPException with a plain string detail, but pydantic validation
+// failures (422s) return detail as an array of {loc, msg, type} objects
+// instead. Passing that array straight into ApiError's message meant a
+// validation error like a password missing a lowercase letter rendered as
+// "[object Object]" or crashed a component trying to display it — this
+// normalizes both shapes into one readable string.
+function extractErrorMessage(body: any): string {
+  if (typeof body?.detail === "string") return body.detail;
+  if (Array.isArray(body?.detail)) {
+    return body.detail
+      .map((e: any) => e?.msg ?? JSON.stringify(e))
+      .join(" ");
+  }
+  return "An error occurred";
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -23,7 +40,7 @@ async function request<T>(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "An error occurred" }));
-    throw new ApiError(err.detail ?? "An error occurred", res.status);
+    throw new ApiError(extractErrorMessage(err), res.status);
   }
 
   if (res.status === 204) return undefined as T;
@@ -42,7 +59,7 @@ async function uploadRequest<T>(path: string, formData: FormData): Promise<T> {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "An error occurred" }));
-    throw new ApiError(err.detail ?? "An error occurred", res.status);
+    throw new ApiError(extractErrorMessage(err), res.status);
   }
   return res.json();
 }

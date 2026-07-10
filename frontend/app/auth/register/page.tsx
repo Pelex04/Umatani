@@ -50,7 +50,12 @@ export default function RegisterPage() {
     return () => clearTimeout(handle);
   }, [email, emailFormatValid]);
 
-  const checks = { len: password.length >= 10, upper: /[A-Z]/.test(password), num: /[0-9]/.test(password) };
+  const checks = {
+    len: password.length >= 10,
+    upper: /[A-Z]/.test(password),
+    lower: /[a-z]/.test(password),
+    num: /[0-9]/.test(password),
+  };
 
   const next = (e: React.FormEvent) => {
     e.preventDefault(); setError("");
@@ -70,6 +75,7 @@ export default function RegisterPage() {
     e.preventDefault(); setError("");
     if (!checks.len)         return setError("Password must be at least 10 characters.");
     if (!checks.upper)       return setError("Password needs an uppercase letter.");
+    if (!checks.lower)       return setError("Password needs a lowercase letter.");
     if (!checks.num)         return setError("Password needs a number.");
     if (password !== confirm) return setError("Passwords do not match.");
     setLoading(true);
@@ -223,7 +229,7 @@ export default function RegisterPage() {
                       </button>
                     </div>
                     <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
-                      {[["10+ chars", checks.len], ["Uppercase", checks.upper], ["Number", checks.num]].map(([l, ok]) => (
+                      {[["10+ chars", checks.len], ["Uppercase", checks.upper], ["Lowercase", checks.lower], ["Number", checks.num]].map(([l, ok]) => (
                         <span key={l as string} style={{ fontSize: 11, padding: "3px 9px", borderRadius: 100, fontWeight: 500, background: ok ? "var(--forest-100)" : "#F1F3F5", color: ok ? "var(--forest-600)" : "var(--ink-faint)", transition: "all 0.2s" }}>
                           {ok ? "✓" : "·"} {l}
                         </span>
