@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
+import { ReferenceDataProvider } from "@/lib/referenceData";
 import { Header } from "@/components/layout/Header";
 
 export const metadata: Metadata = {
@@ -13,8 +14,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <AuthProvider>
-          <Header />
-          {children}
+          <ReferenceDataProvider>
+            <Header />
+            {children}
+          </ReferenceDataProvider>
         </AuthProvider>
       </body>
     </html>

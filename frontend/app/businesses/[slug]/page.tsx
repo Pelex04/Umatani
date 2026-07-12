@@ -5,10 +5,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useReferenceData } from "@/lib/referenceData";
 import { Stars } from "@/components/ui/Stars";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatDate, timeAgo } from "@/lib/utils";
-import type { Business, Review, School, Category } from "@/types";
+import type { Business, Review } from "@/types";
 
 const PALETTES = [
   { bg: "#E8F0EA", text: "#1A3A2A" }, { bg: "#FBF4E0", text: "#A8882E" },
@@ -22,9 +23,8 @@ export default function BusinessProfile() {
   const router = useRouter();
   const { user } = useAuth();
 
+  const { schoolById, categoryById } = useReferenceData();
   const [biz,      setBiz]      = useState<Business | null>(null);
-  const [school,   setSchool]   = useState<School | null>(null);
-  const [category, setCategory] = useState<Category | null>(null);
   const [reviews,  setReviews]  = useState<Review[]>([]);
   const [revTotal, setRevTotal] = useState(0);
   const [loading,  setLoading]  = useState(true);
@@ -41,13 +41,13 @@ export default function BusinessProfile() {
   useEffect(() => {
     if (!slug) return;
     api.businesses.getBySlug(slug as string)
-      .then(async b => {
-        setBiz(b);
-        const [schs, cats] = await Promise.all([api.schools.list(), api.categories.list()]);
-        setSchool(schs.find(s => s.id === b.school_id) ?? null);
-        setCategory(cats.find(c => c.id === b.category_id) ?? null);
-      }).catch(() => router.push("/discover")).finally(() => setLoading(false));
+      .then(b => setBiz(b))
+      .catch(() => router.push("/discover"))
+      .finally(() => setLoading(false));
   }, [slug]);
+
+  const school = biz ? schoolById(biz.school_id) ?? null : null;
+  const category = biz ? categoryById(biz.category_id) ?? null : null;
 
   const loadReviews = async (off = 0) => {
     if (!biz) return;

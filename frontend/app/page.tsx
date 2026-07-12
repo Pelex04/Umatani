@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
-import type { Category, School, BusinessListItem } from "@/types";
+import { useReferenceData } from "@/lib/referenceData";
+import type { BusinessListItem } from "@/types";
 
 const ROTATING_WORDS = ["designs", "bakes", "codes", "photographs", "tutors", "tailors", "repairs", "decorates"];
 
@@ -20,8 +21,7 @@ export default function Home() {
   const [wordIndex, setWordIndex] = useState(0);
   const [query,     setQuery]     = useState("");
   const [focused,   setFocused]   = useState(false);
-  const [cats,      setCats]      = useState<Category[]>([]);
-  const [schools,   setSchools]   = useState<School[]>([]);
+  const { categories: cats, schools } = useReferenceData();
   const [bizList,   setBizList]   = useState<BusinessListItem[]>([]);
   const [loading,   setLoading]   = useState(true);
 
@@ -31,8 +31,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    Promise.all([api.categories.list(), api.schools.list(), api.businesses.search({ limit: 3 })])
-      .then(([c, s, b]) => { setCats(c); setSchools(s); setBizList(b.items); })
+    api.businesses.search({ limit: 3 })
+      .then(b => setBizList(b.items))
       .finally(() => setLoading(false));
   }, []);
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useReferenceData } from "@/lib/referenceData";
 import { Stars } from "@/components/ui/Stars";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { Business, Category } from "@/types";
@@ -14,8 +15,8 @@ type Tab = "overview" | "profile" | "services";
 export default function DashboardPage() {
   const { user, loading: authLoading, refresh } = useAuth();
   const router = useRouter();
+  const { categories: cats } = useReferenceData();
   const [biz,     setBiz]     = useState<Business | null>(null);
-  const [cats,    setCats]    = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab,     setTab]     = useState<Tab>("overview");
   const [saving,  setSaving]  = useState(false);
@@ -36,9 +37,9 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!authLoading && !user) { router.push("/auth/login"); return; }
     if (!user) return;
-    Promise.all([api.businesses.getMine().catch(() => null), api.categories.list()])
-      .then(([b, c]) => {
-        setBiz(b); setCats(c);
+    api.businesses.getMine().catch(() => null)
+      .then((b) => {
+        setBiz(b);
         if (b) {
           setName(b.name); setDescription(b.description);
           setCategoryId(b.category_id); setWhatsapp(b.whatsapp ?? "");

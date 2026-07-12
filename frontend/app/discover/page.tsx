@@ -2,9 +2,10 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { useReferenceData } from "@/lib/referenceData";
 import { BusinessCard } from "@/components/business/BusinessCard";
 import { BusinessCardSkeleton } from "@/components/ui/Skeleton";
-import type { Category, School, BusinessListItem } from "@/types";
+import type { BusinessListItem } from "@/types";
 
 function DiscoverInner() {
   const sp     = useSearchParams();
@@ -16,8 +17,7 @@ function DiscoverInner() {
   const [minRating,  setMinRating]  = useState(sp.get("min_rating") ?? "");
   const [showFilter, setShowFilter] = useState(false);
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [schools,    setSchools]    = useState<School[]>([]);
+  const { categories, schools } = useReferenceData();
   const [results,    setResults]    = useState<BusinessListItem[]>([]);
   const [total,      setTotal]      = useState(0);
   const [loading,    setLoading]    = useState(true);
@@ -26,11 +26,6 @@ function DiscoverInner() {
 
   const schoolMap = Object.fromEntries(schools.map(s => [s.id, s]));
   const catMap    = Object.fromEntries(categories.map(c => [c.id, c]));
-
-  useEffect(() => {
-    Promise.all([api.categories.list(), api.schools.list()])
-      .then(([cats, schs]) => { setCategories(cats); setSchools(schs); });
-  }, []);
 
   const doSearch = useCallback(async (off = 0) => {
     setLoading(true);
