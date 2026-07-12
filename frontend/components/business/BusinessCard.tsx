@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { Stars } from "@/components/ui/Stars";
 import type { BusinessListItem } from "@/types";
 
@@ -34,8 +35,17 @@ export function BusinessCard({ business, school, category }: Props) {
           background: business.logo_url ? "var(--cream)" : `linear-gradient(135deg, ${pal.bg}, white)`,
         }}>
           {business.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={business.logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <Image
+              src={business.logo_url}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              style={{ objectFit: "cover" }}
+              // Grid cards are almost always below the initial viewport
+              // fold — default lazy loading means the browser doesn't
+              // fetch these until they're about to scroll into view,
+              // instead of downloading every card's image up front.
+            />
           ) : (
             <div style={{
               position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",

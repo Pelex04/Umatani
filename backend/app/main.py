@@ -1,6 +1,7 @@
 """UMATANI API — main entrypoint."""
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -43,6 +44,16 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
+
+# Compresses JSON responses over ~500 bytes — search results, review lists,
+# and business detail payloads (with services + portfolio inlined) are
+# comfortably above that threshold and compress well as JSON. Added after
+# CORS so it's the outermost middleware (Starlette applies middleware in
+# reverse of add order): CORS headers get attached first, then the whole
+# response is gzipped on the way out — the standard recommended ordering,
+# since compressing before CORS headers exist would mean re-computing
+# content-length after the fact instead of once.
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 
 @app.exception_handler(Exception)

@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -28,11 +28,17 @@ admin_router = APIRouter(
 
 @router.get("", response_model=list[SchoolPublicResponse])
 async def list_schools(
+    response: Response,
     search: str | None = Query(default=None, max_length=255),
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ) -> list[SchoolPublicResponse]:
+    # Same reasoning as categories: schools are admin-managed and change
+    # rarely. Only cache the plain, unfiltered listing — a `search` query
+    # is a one-off lookup, not something worth a shared cache entry for.
+    if search is None:
+        response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=3600"
     service = SchoolService(db)
     schools = await service.list_public(offset=offset, limit=limit, search=search)
     return [SchoolPublicResponse.model_validate(s) for s in schools]

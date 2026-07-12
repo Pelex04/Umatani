@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -84,8 +85,14 @@ export default function BusinessProfile() {
       {/* Cover bar */}
       <div style={{ height: 220, background: "var(--forest)", position: "relative", overflow: "hidden" }}>
         {biz.cover_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={biz.cover_url} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+          <Image
+            src={biz.cover_url}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            style={{ objectFit: "cover" }}
+          />
         ) : (
           <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(201,168,76,0.06) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
         )}
@@ -112,11 +119,10 @@ export default function BusinessProfile() {
               display: "flex", alignItems: "center", justifyContent: "center",
               fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 26,
               border: "3px solid var(--cream)", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-              overflow: "hidden",
+              overflow: "hidden", position: "relative",
             }}>
               {biz.logo_url
-                // eslint-disable-next-line @next/next/no-img-element
-                ? <img src={biz.logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ? <Image src={biz.logo_url} alt="" fill priority sizes="72px" style={{ objectFit: "cover" }} />
                 : initials(biz.name)}
             </div>
             <div style={{ paddingBottom: 4 }}>
@@ -191,9 +197,9 @@ export default function BusinessProfile() {
                   ? <EmptyState text="No portfolio items yet" />
                   : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
                       {biz.portfolio_items.map(item => (
-                        <div key={item.id} style={{ aspectRatio: "1", borderRadius: 12, overflow: "hidden", background: "var(--forest-100)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <div key={item.id} style={{ aspectRatio: "1", borderRadius: 12, overflow: "hidden", background: "var(--forest-100)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                           {item.item_type === "image"
-                            ? <img src={item.display_url} alt={item.caption ?? ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            ? <Image src={item.display_url} alt={item.caption ?? ""} fill sizes="(max-width: 640px) 50vw, 200px" style={{ objectFit: "cover" }} />
                             : <a href={item.display_url} target="_blank" rel="noopener" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, color: "var(--forest-600)", padding: 16, textAlign: "center" }}>
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M11 3H17V9M17 3L9 11M8 4H4C3.45 4 3 4.45 3 5V16C3 16.55 3.45 17 4 17H15C15.55 17 16 16.55 16 16V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 <span style={{ fontSize: 11 }}>{item.caption ?? "Link"}</span>

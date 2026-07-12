@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -23,7 +23,16 @@ admin_router = APIRouter(
 
 
 @router.get("", response_model=list[CategoryPublicResponse])
-async def list_categories(db: AsyncSession = Depends(get_db)) -> list[CategoryPublicResponse]:
+async def list_categories(
+    response: Response, db: AsyncSession = Depends(get_db)
+) -> list[CategoryPublicResponse]:
+    # Categories change maybe a handful of times ever (admin-managed).
+    # Beyond the frontend's own in-session cache, this lets browsers and
+    # any CDN in front of the API skip the round trip entirely for repeat
+    # visits within the window — stale-while-revalidate means a slightly
+    # out-of-date list serves instantly while a fresh one loads in the
+    # background, rather than blocking on it.
+    response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=3600"
     service = CategoryService(db)
     cats = await service.list_public()
     return [CategoryPublicResponse.model_validate(c) for c in cats]

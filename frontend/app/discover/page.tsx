@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useReferenceData } from "@/lib/referenceData";
@@ -27,26 +27,47 @@ function DiscoverInner() {
   const schoolMap = Object.fromEntries(schools.map(s => [s.id, s]));
   const catMap    = Object.fromEntries(categories.map(c => [c.id, c]));
 
-  const doSearch = useCallback(async (off = 0) => {
+  // Debounced separately from `keyword` itself: without this, doSearch's
+  // dependency on keyword meant its identity changed on every keystroke,
+  // which re-triggered the effect below on every keystroke too — a full
+  // network request per character typed, not just on Enter/search-click
+  // as the visible handlers suggested. requestId guards against an older,
+  // slower response resolving after a newer one and overwriting it.
+  const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedKeyword(keyword), 400);
+    return () => clearTimeout(handle);
+  }, [keyword]);
+
+  const requestIdRef = useRef(0);
+
+  const doSearch = useCallback(async (off = 0, keywordOverride?: string) => {
+    const thisRequestId = ++requestIdRef.current;
     setLoading(true);
     try {
       const res = await api.businesses.search({
-        keyword: keyword || undefined,
+        keyword: (keywordOverride ?? debouncedKeyword) || undefined,
         category_id: categoryId || undefined,
         school_id: schoolId || undefined,
         min_rating: minRating ? Number(minRating) : undefined,
         offset: off, limit: LIMIT,
       });
+      if (thisRequestId !== requestIdRef.current) return; // a newer search superseded this one
       if (off === 0) setResults(res.items);
       else setResults(prev => [...prev, ...res.items]);
       setTotal(res.total);
       setOffset(off);
     } finally {
-      setLoading(false);
+      if (thisRequestId === requestIdRef.current) setLoading(false);
     }
-  }, [keyword, categoryId, schoolId, minRating]);
+  }, [debouncedKeyword, categoryId, schoolId, minRating]);
 
   useEffect(() => { doSearch(0); }, [doSearch]);
+
+  // Bypasses the debounce timer entirely — used when the person explicitly
+  // hits Enter or clicks Search, so acting on their input is never slower
+  // than just waiting, even mid-debounce.
+  const searchNow = () => { setDebouncedKeyword(keyword); doSearch(0, keyword); };
 
   const activeFilters = [
     categoryId && catMap[categoryId]?.name,
@@ -74,7 +95,7 @@ function DiscoverInner() {
               <input
                 type="text" value={keyword}
                 onChange={e => setKeyword(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && doSearch(0)}
+                onKeyDown={e => e.key === "Enter" && searchNow()}
                 placeholder="Search businesses or services…"
                 className="input"
                 style={{ paddingLeft: 36 }}
@@ -93,7 +114,7 @@ function DiscoverInner() {
                 </span>
               )}
             </button>
-            <button onClick={() => doSearch(0)} className="btn btn-primary" style={{ flexShrink: 0 }}>
+            <button onClick={searchNow} className="btn btn-primary" style={{ flexShrink: 0 }}>
               Search
             </button>
           </div>
