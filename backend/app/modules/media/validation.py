@@ -106,3 +106,76 @@ def validate_upload(
         )
 
     return detected
+
+
+# Longest-side cap per purpose. Phone cameras commonly produce 3000-6000px,
+# multi-megabyte photos — served raw, a single business card grid with a
+# dozen logos/covers meant downloading tens of megabytes per page load,
+# which is the dominant cause of "everything feels slow" on the mobile
+# networks this platform's users are actually on. These caps are chosen
+# by how large the image is ever actually displayed at, not by an
+# arbitrary global limit — a logo shown at ~50px on a card never needs
+# more than a few hundred pixels of real resolution.
+_MAX_DIMENSION_BY_PURPOSE: dict[UploadPurpose, int] = {
+    UploadPurpose.BUSINESS_LOGO: 800,
+    UploadPurpose.BUSINESS_COVER: 1600,
+    UploadPurpose.PORTFOLIO_IMAGE: 1600,
+    UploadPurpose.REVIEW_PHOTO: 1600,
+    # Student IDs are reviewed by an admin who needs to actually read the
+    # card, not just glance at it — kept larger and at higher quality than
+    # display-only images so text on the ID stays legible.
+    UploadPurpose.STUDENT_ID: 2000,
+}
+_JPEG_QUALITY_BY_PURPOSE: dict[UploadPurpose, int] = {
+    UploadPurpose.STUDENT_ID: 90,
+}
+_DEFAULT_JPEG_QUALITY = 82
+
+
+def optimize_image(content: bytes, *, purpose: UploadPurpose) -> tuple[bytes, DetectedFileType]:
+    """
+    Downscales to the purpose's max dimension and re-encodes, dropping
+    EXIF metadata along the way — which, for phone photos, often includes
+    GPS coordinates of where the picture was taken (a real privacy leak
+    for a student uploading their own ID or business photos, not just a
+    file-size concern). Images with real transparency are kept as PNG;
+    everything else becomes JPEG, since photographic content compresses
+    far better as JPEG than PNG and none of these purposes need lossless
+    output. Falls back to returning the original bytes untouched if
+    Pillow can't decode the content for any reason — optimization is a
+    quality-of-life improvement, not something an upload should ever hard
+    -fail on.
+    """
+    from io import BytesIO
+
+    from PIL import Image
+
+    try:
+        img = Image.open(BytesIO(content))
+        img.load()
+    except Exception:
+        return content, detect_file_type(content) or DetectedFileType(
+            mime_type="image/jpeg", extension="jpg"
+        )
+
+    has_alpha = img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info)
+
+    max_dim = _MAX_DIMENSION_BY_PURPOSE.get(purpose, 1600)
+    if max(img.size) > max_dim:
+        img.thumbnail((max_dim, max_dim), Image.LANCZOS)
+
+    buffer = BytesIO()
+    if has_alpha:
+        img.convert("RGBA").save(buffer, format="PNG", optimize=True)
+        result_type = DetectedFileType(mime_type="image/png", extension="png")
+    else:
+        quality = _JPEG_QUALITY_BY_PURPOSE.get(purpose, _DEFAULT_JPEG_QUALITY)
+        img.convert("RGB").save(buffer, format="JPEG", quality=quality, optimize=True)
+        result_type = DetectedFileType(mime_type="image/jpeg", extension="jpg")
+
+    optimized = buffer.getvalue()
+    # Rare edge case (already-tiny/already-optimal source): don't let
+    # re-encoding overhead make a small file bigger.
+    if len(optimized) >= len(content):
+        return content, detect_file_type(content) or result_type
+    return optimized, result_type

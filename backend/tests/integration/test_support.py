@@ -146,6 +146,12 @@ class TestAdminDashboard:
             hashed_password=hash_password("Pass123word"),
             full_name="Pending Student", role=UserRole.BUSINESS_OWNER,
             status=UserStatus.PENDING_ID_REVIEW, school_id=approved_school.id,
+            # verify_user now requires an ID actually be on file — a bare
+            # PENDING_ID_REVIEW status alone covers both "hasn't submitted
+            # yet" and "submitted, awaiting review", and approving the
+            # former would mean approving someone with no ID on record at
+            # all.
+            student_id_storage_key=f"student_id/{uuid.uuid4()}/id.jpg",
         )
         db_session.add(pending)
         await db_session.commit()

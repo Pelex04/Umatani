@@ -26,6 +26,7 @@ from app.modules.media.storage import StorageBackend, StorageError
 from app.modules.media.validation import (
     UploadPurpose,
     UploadValidationError,
+    optimize_image,
     validate_upload,
 )
 
@@ -69,6 +70,11 @@ class MediaService:
             )
         except UploadValidationError as exc:
             raise MediaError(exc.message) from exc
+
+        # PORTFOLIO_DOCUMENT is the one purpose that can validly be either
+        # an image or a PDF — only optimize the actual image case.
+        if detected.mime_type != "application/pdf":
+            content, detected = optimize_image(content, purpose=purpose)
 
         key = f"{purpose.value}/{owner_id}/{uuid.uuid4()}.{detected.extension}"
 
