@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { useReferenceData } from "@/lib/referenceData";
@@ -54,16 +55,29 @@ export default function Home() {
       <section style={{ position: "relative", height: "100vh", minHeight: 640, overflow: "hidden", background: "#0D2118" }}>
 
         {/* Right-side image panel */}
-        <motion.div style={{ scale: imgScale, position: "absolute", top: 0, right: 0, width: "52%", height: "100%", background: "linear-gradient(135deg, #1A3A2A 0%, #0D2118 100%)" }}>
+        <motion.div style={{ scale: imgScale, position: "absolute", top: 0, right: 0, width: "52%", height: "100%", overflow: "hidden", background: "#0D2118" }}>
+          <Image
+            src="https://images.unsplash.com/photo-1687422808384-c896d0efd4ab?q=80&w=1600&auto=format&fit=crop"
+            alt=""
+            fill
+            priority
+            sizes="52vw"
+            style={{ objectFit: "cover", objectPosition: "center 30%" }}
+          />
+          {/* Dark scrim — a real photo needs more darkening than a pure
+              gradient did, both so the left-edge text-fade below still
+              reads cleanly and to keep the same moody, editorial tone
+              as the rest of the hero rather than a raw stock photo. */}
+          <div style={{ position: "absolute", inset: 0, background: "rgba(13,33,24,0.42)" }} />
           <div style={{
             position: "absolute", inset: 0,
             backgroundImage: `
-              radial-gradient(ellipse at 30% 50%, rgba(201,168,76,0.08) 0%, transparent 60%),
-              radial-gradient(circle at 70% 20%, rgba(26,58,42,0.8) 0%, transparent 50%)
+              radial-gradient(ellipse at 30% 50%, rgba(201,168,76,0.1) 0%, transparent 60%),
+              radial-gradient(circle at 70% 20%, rgba(26,58,42,0.55) 0%, transparent 50%)
             `,
           }} />
           {/* Geometric accent lines */}
-          <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.06 }} viewBox="0 0 500 700" fill="none">
+          <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.1 }} viewBox="0 0 500 700" fill="none">
             <circle cx="250" cy="350" r="220" stroke="#C9A84C" strokeWidth="0.5"/>
             <circle cx="250" cy="350" r="160" stroke="#C9A84C" strokeWidth="0.5"/>
             <circle cx="250" cy="350" r="100" stroke="#C9A84C" strokeWidth="0.5"/>
@@ -72,6 +86,12 @@ export default function Home() {
           </svg>
           {/* Gold dot grid */}
           <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(201,168,76,0.12) 1px, transparent 1px)", backgroundSize: "32px 32px", opacity: 0.6 }} />
+          {/* Unsplash License doesn't require attribution, but it's a nice
+              courtesy to the photographer and costs nothing visually. */}
+          <a href="https://unsplash.com/@mkumbwajr" target="_blank" rel="noopener noreferrer"
+            style={{ position: "absolute", bottom: 10, right: 14, fontSize: 9.5, color: "rgba(247,244,239,0.28)", textDecoration: "none", fontFamily: "var(--font-sans)", letterSpacing: "0.02em" }}>
+            Photo: Ali Mkumbwa / Unsplash
+          </a>
         </motion.div>
 
         {/* Left gradient fade */}
