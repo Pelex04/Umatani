@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { useReferenceData } from "@/lib/referenceData";
+import { BusinessCard } from "@/components/business/BusinessCard";
 import type { BusinessListItem } from "@/types";
 
 const ROTATING_WORDS = ["designs", "bakes", "codes", "photographs", "tutors", "tailors", "repairs", "decorates"];
@@ -237,76 +238,14 @@ export default function Home() {
               <Link href="/auth/register" className="btn btn-primary">List your business</Link>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr", gap: 16, alignItems: "start" }}>
-              {bizList.map((biz, i) => {
-                const cat = catMap[biz.category_id];
-                const school = schoolMap[biz.school_id];
-                const PALETTES = [["#E8F0EA","#1A3A2A"],["#FBF4E0","#A8882E"],["#EEF2FF","#3730A3"]];
-                const [bg, fg] = PALETTES[i % PALETTES.length];
-                const isHero = i === 0;
-
-                return (
-                  <motion.div key={biz.id}
-                    initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-40px" }} transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16,1,0.3,1] }}>
-                    <Link href={`/businesses/${biz.slug}`} style={{ textDecoration: "none", display: "block" }}>
-                      <div style={{
-                        background: "white", borderRadius: 18,
-                        border: "1px solid rgba(26,58,42,0.07)",
-                        overflow: "hidden",
-                        boxShadow: "0 2px 8px rgba(26,58,42,0.05)",
-                        transition: "transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s",
-                        cursor: "pointer",
-                      }}
-                      onMouseEnter={e => { const el = e.currentTarget; el.style.transform = "translateY(-4px)"; el.style.boxShadow = "0 16px 40px rgba(26,58,42,0.12)"; }}
-                      onMouseLeave={e => { const el = e.currentTarget; el.style.transform = ""; el.style.boxShadow = "0 2px 8px rgba(26,58,42,0.05)"; }}>
-
-                        {/* Card colour bar */}
-                        <div style={{ background: bg, padding: isHero ? "32px 24px 28px" : "24px 20px 20px", position: "relative" }}>
-                          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                            <div style={{ width: isHero ? 56 : 44, height: isHero ? 56 : 44, borderRadius: 12, background: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: isHero ? 24 : 18, color: fg }}>
-                              {biz.name[0]}
-                            </div>
-                            <div style={{ background: biz.is_available ? "rgba(26,58,42,0.12)" : "rgba(0,0,0,0.06)", borderRadius: 100, padding: "4px 10px", display: "flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 600, color: biz.is_available ? "var(--forest-600)" : "var(--ink-faint)", fontFamily: "var(--font-sans)" }}>
-                              <div style={{ width: 4.5, height: 4.5, borderRadius: "50%", background: biz.is_available ? "#3D8050" : "#9CA3AF" }} />
-                              {biz.is_available ? "Open" : "Busy"}
-                            </div>
-                          </div>
-                          <h3 style={{ fontFamily: "var(--font-serif)", fontWeight: 600, fontSize: isHero ? 22 : 17, color: fg, letterSpacing: "-0.02em", lineHeight: 1.2, marginTop: 14 }}>
-                            {biz.name}
-                          </h3>
-                          {cat && <p style={{ fontSize: 11, fontWeight: 500, color: fg, opacity: 0.6, marginTop: 4, fontFamily: "var(--font-sans)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{cat.name}</p>}
-                        </div>
-
-                        {/* Card body */}
-                        <div style={{ padding: isHero ? "20px 24px 22px" : "16px 20px 18px" }}>
-                          <p style={{ fontSize: isHero ? 13.5 : 12.5, color: "var(--ink-muted)", lineHeight: 1.7, marginBottom: 14,
-                            display: "-webkit-box", WebkitLineClamp: isHero ? 3 : 2, WebkitBoxOrient: "vertical" as any, overflow: "hidden" }}>
-                            {biz.description}
-                          </p>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                            {biz.average_rating > 0 ? (
-                              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                                <div style={{ display: "flex", gap: 1 }}>
-                                  {[1,2,3,4,5].map(s => (
-                                    <svg key={s} width="11" height="11" viewBox="0 0 16 16" fill={s <= Math.round(biz.average_rating) ? "#C9A84C" : "#E5E7EB"}><path d="M8 1l1.85 3.75L14 5.5l-3 2.92.7 4.08L8 10.35 4.3 12.5l.7-4.08L2 5.5l4.15-.75z"/></svg>
-                                  ))}
-                                </div>
-                                <span style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>{biz.average_rating.toFixed(1)}</span>
-                                <span style={{ fontSize: 11, color: "var(--ink-faint)" }}>({biz.review_count})</span>
-                              </div>
-                            ) : <span style={{ fontSize: 11, color: "var(--ink-faint)" }}>No reviews yet</span>}
-                            <span style={{ fontSize: 11.5, fontWeight: 500, color: "var(--forest)", display: "flex", alignItems: "center", gap: 4 }}>
-                              View
-                              <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2.5 6h7M7 3.5 9.5 6 7 8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+              {bizList.map((biz, i) => (
+                <motion.div key={biz.id}
+                  initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }} transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16,1,0.3,1] }}>
+                  <BusinessCard business={biz} school={schoolMap[biz.school_id]} category={catMap[biz.category_id]} />
+                </motion.div>
+              ))}
             </div>
           )}
         </div>
