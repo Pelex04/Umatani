@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -333,8 +334,7 @@ function BusinessImageUpload({ biz, onUpdated }: { biz: Business; onUpdated: (b:
       {/* Cover band with logo overlapping, mirrors the public profile layout */}
       <div style={{ position: "relative", height: 120, borderRadius: 12, overflow: "hidden", background: "var(--forest-50)", border: "1px solid var(--border)" }}>
         {biz.cover_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={biz.cover_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <Image src={biz.cover_url} alt="" fill sizes="600px" style={{ objectFit: "cover" }} />
         )}
         <UploadTrigger
           label={uploading === "cover" ? "Uploading…" : biz.cover_url ? "Change cover" : "Add cover photo"}
@@ -347,8 +347,7 @@ function BusinessImageUpload({ biz, onUpdated }: { biz: Business; onUpdated: (b:
           border: "3px solid white", overflow: "hidden", background: "white", boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
         }}>
           {biz.logo_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={biz.logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <Image src={biz.logo_url} alt="" fill sizes="56px" style={{ objectFit: "cover" }} />
           )}
         </div>
       </div>
