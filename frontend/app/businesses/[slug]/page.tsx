@@ -145,9 +145,9 @@ export default function BusinessProfile() {
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 28, alignItems: "start" }}>
+        <div className="biz-detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 28, alignItems: "start" }}>
           {/* Left */}
-          <div>
+          <div className="biz-detail-main">
             {/* Tabs */}
             <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--border)", marginBottom: 28 }}>
               {(["about","portfolio","reviews"] as const).map(t => (
@@ -275,7 +275,7 @@ export default function BusinessProfile() {
           </div>
 
           {/* Right — contact sidebar */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div className="biz-detail-sidebar" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 14, padding: 18 }}>
               <p className="eyebrow" style={{ marginBottom: 14 }}>Contact</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

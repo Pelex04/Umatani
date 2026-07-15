@@ -139,6 +139,7 @@ export default function AdminDashboard() {
             {viewError && <p style={{ fontSize: 12.5, color: "#C53030", marginBottom: 12 }}>{viewError}</p>}
             {loading ? <TableSkeleton /> : (
               <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 14, overflow: "hidden" }}>
+                <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                   <thead>
                     <tr style={{ borderBottom: "1px solid var(--border)", background: "#FAFAFA" }}>
@@ -182,6 +183,7 @@ export default function AdminDashboard() {
                     ))}
                   </tbody>
                 </table>
+                </div>
                 {rows.length === 0 && <p style={{ textAlign: "center", padding: "32px", color: "var(--ink-faint)", fontSize: 13.5 }}>No users found</p>}
               </div>
             )}
@@ -221,8 +223,8 @@ export default function AdminDashboard() {
         {tab === "schools" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {loading ? <TableSkeleton /> : rows.map((s: any) => (
-              <div key={s.id} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-                <div>
+              <div key={s.id} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <div style={{ minWidth: 0 }}>
                   <p style={{ fontWeight: 500, color: "var(--forest)", fontSize: 13.5, marginBottom: 2 }}>{s.name}</p>
                   <p style={{ fontSize: 12, color: "var(--ink-faint)" }}>{s.city}, {s.country} · @{s.email_domain}</p>
                 </div>
@@ -244,6 +246,7 @@ export default function AdminDashboard() {
             {loading ? <TableSkeleton /> : rows.length === 0
               ? <AllClear text="No open reports" />
               : <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 14, overflow: "hidden" }}>
+                  <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                     <thead><tr style={{ borderBottom: "1px solid var(--border)", background: "#FAFAFA" }}>
                       {["Type","Reason","Status","Date",""].map(h => <th key={h} style={{ padding: "11px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "var(--ink-faint)", letterSpacing: "0.07em", textTransform: "uppercase" }}>{h}</th>)}
@@ -263,6 +266,7 @@ export default function AdminDashboard() {
                       </tr>
                     ))}</tbody>
                   </table>
+                  </div>
                 </div>
             }
           </div>

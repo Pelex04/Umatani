@@ -105,8 +105,8 @@ export default function RegisterPage() {
 
   return (
     <div style={{ minHeight: "calc(100vh - 58px)", display: "flex" }}>
-      {/* Left brand panel */}
-      <div style={{ flex: "0 0 46%", background: "var(--forest)", flexDirection: "column", justifyContent: "space-between", padding: "56px 60px", display: "none" }}>
+      {/* Left brand panel (hidden on mobile, shown on desktop — see .auth-brand-panel in globals.css) */}
+      <div className="auth-brand-panel" style={{ flex: "0 0 46%", background: "var(--forest)", flexDirection: "column", justifyContent: "space-between", padding: "56px 60px", display: "none" }}>
         <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(247,244,239,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 700, color: "var(--cream)", fontSize: 15 }}>u</span>
         </div>

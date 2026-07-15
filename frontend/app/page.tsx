@@ -54,8 +54,13 @@ export default function Home() {
       ═══════════════════════════════════════════ */}
       <section style={{ position: "relative", height: "100vh", minHeight: 640, overflow: "hidden", background: "#0D2118" }}>
 
-        {/* Right-side image panel */}
-        <motion.div style={{ scale: imgScale, position: "absolute", top: 0, right: 0, width: "52%", height: "100%", overflow: "hidden", background: "#0D2118" }}>
+        {/* Right-side image panel — hidden on mobile (see media query below):
+            the headline box is only capped at 680px, so below that width it
+            spans full-bleed, sitting on top of this panel's right 52% with
+            no scrim in most of that area. A 50/50 split doesn't work at
+            phone widths anyway; hiding it reveals the section's own solid
+            dark background instead, which is intentional, not a fallback. */}
+        <motion.div className="hero-image-panel" style={{ scale: imgScale, position: "absolute", top: 0, right: 0, width: "52%", height: "100%", overflow: "hidden", background: "#0D2118" }}>
           <Image
             src="https://images.unsplash.com/photo-1687422808384-c896d0efd4ab?q=80&w=1600&auto=format&fit=crop"
             alt=""
@@ -95,7 +100,7 @@ export default function Home() {
         </motion.div>
 
         {/* Left gradient fade */}
-        <div style={{ position: "absolute", top: 0, left: "44%", width: "16%", height: "100%", background: "linear-gradient(to right, #0D2118, transparent)", zIndex: 2 }} />
+        <div className="hero-image-panel" style={{ position: "absolute", top: 0, left: "44%", width: "16%", height: "100%", background: "linear-gradient(to right, #0D2118, transparent)", zIndex: 2 }} />
 
         {/* Headline content */}
         <motion.div style={{ y: titleY, opacity: titleO, position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 6vw", maxWidth: 680 }}>
@@ -111,6 +116,7 @@ export default function Home() {
           </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.25, ease: [0.16,1,0.3,1] }}
+            className="hero-h1"
             style={{
               fontFamily: "var(--font-serif)", fontStyle: "italic",
               fontSize: "clamp(64px, 9vw, 120px)", fontWeight: 700,
@@ -249,7 +255,7 @@ export default function Home() {
 
           {/* Business cards — magazine-style layout */}
           {loading ? (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+            <div className="biz-grid-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
               {[1,2,3].map(i => <div key={i} className="sk" style={{ height: 280, borderRadius: 16 }} />)}
             </div>
           ) : bizList.length === 0 ? (
@@ -258,7 +264,7 @@ export default function Home() {
               <Link href="/auth/register" className="btn btn-primary">List your business</Link>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+            <div className="biz-grid-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
               {bizList.map((biz, i) => (
                 <motion.div key={biz.id}
                   initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}

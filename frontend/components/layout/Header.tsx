@@ -65,7 +65,7 @@ export function Header() {
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {!user ? (
               <>
-                <Link href="/auth/login" style={{
+                <Link href="/auth/login" className="header-desktop-only" style={{
                   textDecoration: "none", fontSize: 13.5, fontWeight: 500, color: "#4B5563",
                   padding: "7px 12px", borderRadius: 8, transition: "all 0.15s",
                 }}
@@ -73,12 +73,12 @@ export function Header() {
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = "#4B5563"; }}>
                   Sign in
                 </Link>
-                <Link href="/auth/register" className="btn btn-primary" style={{ fontSize: 13, padding: "8px 16px" }}>
+                <Link href="/auth/register" className="btn btn-primary header-desktop-only" style={{ fontSize: 13, padding: "8px 16px" }}>
                   List your business
                 </Link>
               </>
             ) : (
-              <div style={{ position: "relative" }}>
+              <div style={{ position: "relative" }} className="header-desktop-only">
                 <button onClick={() => setMenu(!menu)} style={{
                   display: "flex", alignItems: "center", gap: 7,
                   padding: "6px 10px", borderRadius: 10,
@@ -164,7 +164,17 @@ export function Header() {
           <div style={{ borderTop: "1px solid var(--border)", padding: "10px 16px 14px", background: "rgba(247,244,239,0.98)" }}>
             {navLink("Discover", "/discover")}
             {!user && navLink("Sign in", "/auth/login")}
+            {!user && navLink("List your business", "/auth/register")}
             {user && navLink(user.role === "admin" ? "Admin panel" : "Dashboard", user.role === "admin" ? "/admin" : "/dashboard")}
+            {user && (
+              <button onClick={handleLogout} style={{
+                width: "100%", display: "block", textAlign: "left", fontSize: 13.5, fontWeight: 500,
+                color: "#DC2626", padding: "7px 12px", borderRadius: 8, background: "none", border: "none",
+                cursor: "pointer", fontFamily: "var(--font-sans)",
+              }}>
+                Sign out
+              </button>
+            )}
           </div>
         )}
       </header>
@@ -173,6 +183,7 @@ export function Header() {
         @media (max-width: 640px) {
           .mobile-menu-btn { display: flex !important; }
           nav { display: none !important; }
+          .header-desktop-only { display: none !important; }
         }
       `}</style>
     </>

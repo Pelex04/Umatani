@@ -148,3 +148,72 @@ input, textarea, select { font-family: var(--font-sans); }
 @keyframes scaleIn { from{opacity:0;transform:scale(0.93)} to{opacity:1;transform:scale(1)} }
 @keyframes spinSlow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 @keyframes scroll { 0%,100%{opacity:1;transform:translateY(0)} 50%{opacity:0.3;transform:translateY(6px)} }
+
+/* ─── Responsive layout overrides ───────────────────
+   Centralized here rather than scattered per-page <style>
+   tags: a component with more than one return path (e.g. an
+   early-return loading skeleton) only mounts whichever JSX
+   that specific path returns, so a <style> block placed in
+   one return path is silently absent whenever another path
+   renders instead — found this the hard way with a dashboard
+   loading skeleton. Global CSS has no such gap: it's always
+   loaded once, independent of which component/branch is
+   currently rendering, which is what these classes rely on. */
+
+/* Home hero — the right-side image panel only fits a 50/50
+   split at wider widths; below that the headline text (only
+   capped at max-width:680, so full-bleed on any phone) would
+   sit on top of the unscrimmed photo with little to no
+   contrast. Hidden entirely below 768px in favor of the
+   section's own solid dark background. */
+@media (max-width: 768px) {
+  .hero-image-panel { display: none !important; }
+}
+@media (max-width: 420px) {
+  .hero-h1 { font-size: 48px !important; }
+}
+
+/* Home + discover business-card grids */
+@media (max-width: 860px) {
+  .biz-grid-3 { grid-template-columns: 1fr 1fr !important; }
+}
+@media (max-width: 560px) {
+  .biz-grid-3 { grid-template-columns: 1fr !important; }
+}
+
+/* Discover search bar + filter dropdowns — three selects at
+   1fr each squeeze to ~98px on a phone, unusable. */
+@media (max-width: 640px) {
+  .discover-search-row { flex-wrap: wrap; }
+  .discover-search-row > div:first-child { flex-basis: 100%; }
+  .discover-filter-grid { grid-template-columns: 1fr !important; }
+}
+@media (min-width: 641px) and (max-width: 900px) {
+  .discover-filter-grid { grid-template-columns: 1fr 1fr !important; }
+}
+
+/* Business detail — a fixed 280px sidebar next to flexible
+   content leaves almost nothing for the content column on a
+   phone-width screen. Sidebar (contact/WhatsApp CTA) is
+   promoted above the tabs content once stacked, since it's
+   the primary action rather than something to scroll past. */
+@media (max-width: 760px) {
+  .biz-detail-grid { grid-template-columns: 1fr !important; }
+  .biz-detail-sidebar { order: -1; }
+}
+
+/* Dashboard — profile form field pairs and the stats skeleton */
+@media (max-width: 640px) {
+  .dash-form-grid { grid-template-columns: 1fr !important; }
+  .dash-skeleton-stats { grid-template-columns: 1fr 1fr !important; }
+}
+
+/* Login/register — the left brand panel is fully built (heading, copy,
+   decorative elements) but was hardcoded display:none unconditionally,
+   meaning it never showed at all, on any screen size, not just mobile.
+   Its flex/padding properties make clear it was meant to be a desktop
+   split-screen treatment; wiring that up properly here rather than
+   leaving fully-built, styled content permanently dead. */
+@media (min-width: 769px) {
+  .auth-brand-panel { display: flex !important; }
+}

@@ -185,7 +185,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     {/* Quick actions */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div className="dash-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                       {[
                         { label: "Edit profile", icon: "M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z", action: () => setTab("profile") },
                         { label: "View live profile", icon: "M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3", action: () => window.open(`/businesses/${biz.slug}`, "_blank") },
@@ -219,7 +219,7 @@ export default function DashboardPage() {
                 {tab === "profile" && (
                   <form onSubmit={saveProfile} style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 600 }}>
                     <BusinessImageUpload biz={biz} onUpdated={b => setBiz(b)} />
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    <div className="dash-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                       <div>
                         <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Business name</label>
                         <input value={name} onChange={e => setName(e.target.value)} className="input" required />
@@ -235,7 +235,7 @@ export default function DashboardPage() {
                       <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Description</label>
                       <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="input" style={{ resize: "vertical" }} required />
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    <div className="dash-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                       {([["WhatsApp", whatsapp, setWhatsapp, "+265991234567"], ["Phone", phone, setPhone, "+265..."], ["Contact email", email, setEmail, ""], ["Website", website, setWebsite, "https://..."], ["Instagram", instagram, setInstagram, "@username"]] as [string, string, (v: string) => void, string][]).map(([l, v, fn, ph]) => (
                         <div key={l}>
                           <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{l}</label>
@@ -440,5 +440,5 @@ function CreateForm({ cats, onCreated, onCancel }: { cats: Category[]; onCreated
 }
 
 function DashSkeleton() {
-  return <div style={{ minHeight: "100vh", background: "#F4F6F4" }}><div style={{ background: "var(--forest)", height: 120 }} /><div style={{ maxWidth: 1060, margin: "0 auto", padding: 28, display: "flex", flexDirection: "column", gap: 16 }}><div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>{[1,2,3,4].map(i => <Skeleton key={i} h={80} r={12} />)}</div><Skeleton h={400} r={16} /></div></div>;
+  return <div style={{ minHeight: "100vh", background: "#F4F6F4" }}><div style={{ background: "var(--forest)", height: 120 }} /><div style={{ maxWidth: 1060, margin: "0 auto", padding: 28, display: "flex", flexDirection: "column", gap: 16 }}><div className="dash-skeleton-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>{[1,2,3,4].map(i => <Skeleton key={i} h={80} r={12} />)}</div><Skeleton h={400} r={16} /></div></div>;
 }

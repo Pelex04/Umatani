@@ -85,7 +85,7 @@ function DiscoverInner() {
         position: "sticky", top: 58, zIndex: 30,
       }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "14px 24px" }}>
-          <div style={{ display: "flex", gap: 10 }}>
+          <div className="discover-search-row" style={{ display: "flex", gap: 10 }}>
             <div style={{ position: "relative", flex: 1 }}>
               <svg width="15" height="15" viewBox="0 0 20 20" fill="none"
                 style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)", opacity: 0.4 }}>
@@ -120,7 +120,7 @@ function DiscoverInner() {
           </div>
 
           {showFilter && (
-            <div className="anim-in" style={{
+            <div className="anim-in discover-filter-grid" style={{
               marginTop: 14, paddingTop: 14,
               borderTop: "1px solid rgba(26,58,42,0.07)",
               display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16,
