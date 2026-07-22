@@ -33,7 +33,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: { default: "UMATANI — Student Business Discovery", template: "%s · UMATANI" },
+  title: { default: "UMATANI · Student Business Discovery", template: "%s · UMATANI" },
   description: "Discover trusted student entrepreneurs at Malawian universities. Find graphic designers, photographers, bakers, programmers and more.",
 };
 

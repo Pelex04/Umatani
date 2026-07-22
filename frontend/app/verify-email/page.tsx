@@ -87,7 +87,7 @@ function VerifyEmailContent() {
               Missing verification link
             </h1>
             <p style={{ fontSize: 13.5, color: "var(--ink-faint)" }}>
-              This page needs a verification token — use the link from your email, not this page directly.
+              This page needs a verification token. Use the link from your email, not this page directly.
             </p>
           </>
         )}

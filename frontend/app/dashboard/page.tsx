@@ -104,7 +104,7 @@ export default function DashboardPage() {
           <div style={{ background: "#EEF2FF", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 12, padding: "18px 20px", marginBottom: 24 }}>
             <p style={{ fontSize: 13.5, fontWeight: 600, color: "#4338CA", marginBottom: 4 }}>Submit your student ID</p>
             <p style={{ fontSize: 12.5, color: "#4F46E5", opacity: 0.8, marginBottom: 14 }}>
-              One last step — upload a photo of your student ID so an admin can verify your account.
+              One last step: upload a photo of your student ID so an admin can verify your account.
             </p>
             <StudentIdUpload onSubmitted={refresh} />
           </div>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
             {/* Stats row */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12, marginBottom: 24 }}>
               {[
-                { label: "Rating", value: biz.average_rating > 0 ? biz.average_rating.toFixed(1) : "—", sub: `${biz.review_count} reviews` },
+                { label: "Rating", value: biz.average_rating > 0 ? biz.average_rating.toFixed(1) : "N/A", sub: `${biz.review_count} reviews` },
                 { label: "Status", value: biz.status ?? "pending", badge: true },
                 { label: "Portfolio", value: biz.portfolio_items.length, sub: "items uploaded" },
                 { label: "Services", value: biz.services.length, sub: "listed" },

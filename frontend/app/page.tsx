@@ -325,7 +325,7 @@ export default function Home() {
             Show Malawi<br />what you do.
           </h2>
           <p style={{ color: "rgba(247,244,239,0.42)", fontSize: 15, lineHeight: 1.8, marginBottom: 40, maxWidth: 440 }}>
-            Free for student entrepreneurs. Verified by your university. Reach customers across campus and beyond — always.
+            Free for student entrepreneurs. Verified by your university. Reach customers across campus and beyond, always.
           </p>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <Link href="/auth/register" style={{
@@ -336,7 +336,7 @@ export default function Home() {
             }}
             onMouseEnter={e => { e.currentTarget.style.background = "#A8882E"; e.currentTarget.style.transform = "translateY(-1px)"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "var(--gold)"; e.currentTarget.style.transform = ""; }}>
-              List your business — free
+              List your business, free
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </Link>
             <Link href="/discover" style={{

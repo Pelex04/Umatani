@@ -62,7 +62,7 @@ export default function RegisterPage() {
     if (step === 0) {
       if (!fullName.trim()) return setError("Full name is required.");
       if (!emailFormatValid) return setError("Enter a valid email address.");
-      if (matchStatus === "checking") return setError("Still checking your email — one moment.");
+      if (matchStatus === "checking") return setError("Still checking your email. One moment.");
       if (matchStatus !== "matched" || !matchedSchool) {
         return setError("This isn't a recognised university email address. Use your official student email.");
       }
@@ -161,7 +161,7 @@ export default function RegisterPage() {
                     )}
                     {matchStatus === "matched" && matchedSchool && (
                       <p style={{ fontSize: 11.5, color: "var(--forest-600)", marginTop: 6, fontWeight: 500 }}>
-                        ✓ Recognised — {matchedSchool.name}
+                        ✓ Recognised: {matchedSchool.name}
                       </p>
                     )}
                     {matchStatus === "unmatched" && (
@@ -189,7 +189,7 @@ export default function RegisterPage() {
                 <p className="eyebrow" style={{ marginBottom: 10 }}>Step 2 of 3</p>
                 <h1 style={{ fontFamily: "var(--font-serif)", fontWeight: 300, fontSize: 36, color: "var(--forest)", letterSpacing: "-0.025em", marginBottom: 12 }}>Your university</h1>
                 <p style={{ fontSize: 13.5, color: "var(--ink-faint)", marginBottom: 24 }}>
-                  Detected from your email address — no need to pick it manually.
+                  Detected from your email address, no need to pick it manually.
                 </p>
                 <form onSubmit={next} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   {matchedSchool ? (
@@ -202,7 +202,7 @@ export default function RegisterPage() {
                     </div>
                   ) : (
                     <p style={{ fontSize: 13, color: "#C53030", padding: "20px 0", textAlign: "center" }}>
-                      No university detected — go back and check your email address.
+                      No university detected. Go back and check your email address.
                     </p>
                   )}
                   {error && <ErrorMsg msg={error} />}

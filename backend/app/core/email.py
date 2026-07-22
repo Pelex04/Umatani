@@ -82,7 +82,7 @@ async def send_verification_email(*, to: str, full_name: str, token: str) -> Non
         f"{verify_url}\n\n"
         f"This link expires in {settings.EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS} hours.\n\n"
         f"If you did not sign up for UMATANI, you can safely ignore this email.\n\n"
-        f"— The UMATANI Team"
+        f"The UMATANI Team"
     )
     html = f"""
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
@@ -109,10 +109,10 @@ async def send_approval_email(*, to: str, full_name: str) -> None:
     subject = "Your UMATANI account has been verified!"
     plain = (
         f"Hi {full_name},\n\n"
-        f"Great news — your student ID has been verified and your UMATANI account "
+        f"Great news: your student ID has been verified and your UMATANI account "
         f"is now fully active. You can now create your business profile.\n\n"
         f"Visit {settings.FRONTEND_URL} to get started.\n\n"
-        f"— The UMATANI Team"
+        f"The UMATANI Team"
     )
     html = f"""
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
