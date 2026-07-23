@@ -111,7 +111,7 @@ export default function RegisterPage() {
           <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 700, color: "var(--cream)", fontSize: 15 }}>u</span>
         </div>
         <div>
-          <p className="eyebrow" style={{ color: "rgba(201,168,76,0.6)", marginBottom: 20 }}>Join UMATANI</p>
+          <p className="eyebrow" style={{ color: "rgba(201,168,76,0.6)", marginBottom: 20 }}>Join Umata?</p>
           <h2 style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 300, fontSize: 60, color: "var(--cream)", lineHeight: 0.9, letterSpacing: "-0.03em", marginBottom: 24 }}>
             Show Malawi<br />what you do.
           </h2>

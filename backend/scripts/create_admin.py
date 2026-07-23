@@ -56,7 +56,7 @@ async def create_admin(email: str, full_name: str, password: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Bootstrap the first UMATANI admin account")
+    parser = argparse.ArgumentParser(description="Bootstrap the first Umata? admin account")
     parser.add_argument("--email", required=True)
     parser.add_argument("--name", required=True, dest="full_name")
     args = parser.parse_args()

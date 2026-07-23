@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     )
 
     # --- App ---
-    APP_NAME: str = "UMATANI"
+    APP_NAME: str = "Umata?"
     ENVIRONMENT: Literal["development", "staging", "production"] = "development"
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     # https://app.brevo.com/settings/keys/api
     BREVO_API_KEY: str | None = None
     EMAIL_FROM_ADDRESS: str = "no-reply@umatani.app"
-    EMAIL_FROM_NAME: str = "UMATANI"
+    EMAIL_FROM_NAME: str = "Umata?"
 
     # --- Object storage (abstracted; Supabase Storage default impl) ---
     STORAGE_BACKEND: Literal["supabase", "local"] = "supabase"

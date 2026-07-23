@@ -75,18 +75,18 @@ async def send_email(*, to: str, subject: str, html: str, plain: str) -> None:
 
 async def send_verification_email(*, to: str, full_name: str, token: str) -> None:
     verify_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
-    subject = "Verify your UMATANI email address"
+    subject = "Verify your Umata? email address"
     plain = (
         f"Hi {full_name},\n\n"
-        f"Welcome to UMATANI! Please verify your school email by visiting:\n\n"
+        f"Welcome to Umata?! Please verify your school email by visiting:\n\n"
         f"{verify_url}\n\n"
         f"This link expires in {settings.EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS} hours.\n\n"
-        f"If you did not sign up for UMATANI, you can safely ignore this email.\n\n"
-        f"The UMATANI Team"
+        f"If you did not sign up for Umata?, you can safely ignore this email.\n\n"
+        f"The Umata? Team"
     )
     html = f"""
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
-      <h2>Welcome to UMATANI 👋</h2>
+      <h2>Welcome to Umata? 👋</h2>
       <p>Hi {full_name},</p>
       <p>Please verify your school email address to continue setting up your account.</p>
       <p style="margin:32px 0;">
@@ -106,20 +106,20 @@ async def send_verification_email(*, to: str, full_name: str, token: str) -> Non
 
 
 async def send_approval_email(*, to: str, full_name: str) -> None:
-    subject = "Your UMATANI account has been verified!"
+    subject = "Your Umata? account has been verified!"
     plain = (
         f"Hi {full_name},\n\n"
-        f"Great news: your student ID has been verified and your UMATANI account "
+        f"Great news: your student ID has been verified and your Umata? account "
         f"is now fully active. You can now create your business profile.\n\n"
         f"Visit {settings.FRONTEND_URL} to get started.\n\n"
-        f"The UMATANI Team"
+        f"The Umata? Team"
     )
     html = f"""
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
       <h2>You're verified! 🎉</h2>
       <p>Hi {full_name},</p>
       <p>Your student ID has been reviewed and your account is now fully active.
-         You can now create your business profile on UMATANI.</p>
+         You can now create your business profile on Umata?.</p>
       <p style="margin:32px 0;">
         <a href="{settings.FRONTEND_URL}/dashboard"
            style="background:#16a34a;color:#fff;padding:12px 24px;

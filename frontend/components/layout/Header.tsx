@@ -52,7 +52,7 @@ export function Header() {
               <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 700, color: "var(--cream)", fontSize: 13, lineHeight: 1 }}>u</span>
             </div>
             <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 700, color: "var(--forest)", fontSize: 18, letterSpacing: "-0.025em", lineHeight: 1 }}>
-              umatani
+              umata<span style={{ opacity: 0.45 }}>?</span>
             </span>
           </Link>
 

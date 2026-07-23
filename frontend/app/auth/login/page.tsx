@@ -34,7 +34,7 @@ export default function LoginPage() {
         </div>
         <div>
           <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(201,168,76,0.6)", marginBottom: 20 }}>
-            UMATANI
+            UMATA?
           </div>
           <h2 style={{
             fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 300,
@@ -64,7 +64,7 @@ export default function LoginPage() {
             Sign in
           </h1>
           <p style={{ fontSize: 13.5, color: "var(--ink-faint)", marginBottom: 40 }}>
-            New to UMATANI?{" "}
+            New to Umata?{" "}
             <Link href="/auth/register" style={{ color: "var(--forest)", fontWeight: 500, textDecoration: "none" }}>
               Create an account
             </Link>
