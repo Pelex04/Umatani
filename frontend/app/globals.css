@@ -146,6 +146,25 @@ input, textarea, select { font-family: var(--font-sans); }
 .badge-slate  { background: #F1EBE3; color: var(--ink-muted); }
 .badge-red    { background: #FFF0F0; color: #C0392B; }
 
+/* ─── Availability status tag ───────────────────────
+   Deliberately not a colored dot with a glow — that specific motif
+   (small circle + soft box-shadow halo) is one of the most immediately
+   recognizable "AI dashboard" tells there is. Plain uppercase text on
+   a flat, sharp-cornered tag instead: no glow, no shape gimmick, just
+   information. */
+.status-tag {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 2px;
+}
+.status-tag.is-open   { background: #EAF2EC; color: #2F6B45; }
+.status-tag.is-closed { background: rgba(140,114,120,0.12); color: var(--ink-faint); }
+
 /* ─── Signature card interaction: grayscale → color on hover ───
    Meeting the real person behind the trade. Inline styles on next/image
    can't respond to a parent's :hover, hence a real CSS rule rather than

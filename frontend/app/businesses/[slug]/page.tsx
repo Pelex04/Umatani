@@ -138,8 +138,7 @@ export default function BusinessProfile() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <Stars rating={biz.average_rating} count={biz.review_count} size={14} />
-            <span style={{ background: biz.is_available ? "var(--forest-100)" : "#F1F3F5", color: biz.is_available ? "var(--forest-600)" : "var(--ink-faint)", fontSize: 11.5, fontWeight: 500, padding: "4px 10px", borderRadius: 100, display: "flex", alignItems: "center", gap: 5 }}>
-              <div style={{ width: 5, height: 5, borderRadius: "50%", background: biz.is_available ? "#3D8050" : "#CBD5E1" }} />
+            <span className={`status-tag ${biz.is_available ? "is-open" : "is-closed"}`}>
               {biz.is_available ? "Available" : "Busy"}
             </span>
           </div>

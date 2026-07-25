@@ -67,21 +67,13 @@ export function BusinessCard({ business, school, category }: Props) {
             </div>
           )}
 
-          {/* Availability pill, floated over the image band */}
-          <div style={{
-            position: "absolute", top: 10, right: 10,
-            display: "flex", alignItems: "center", gap: 5,
-            fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 100,
-            background: business.is_available ? "rgba(255,255,255,0.94)" : "rgba(255,255,255,0.85)",
-            color: business.is_available ? "var(--forest-600)" : "var(--ink-faint)",
-            backdropFilter: "blur(4px)",
+          {/* Availability status, floated over the image band — plain
+              text tag, no dot/glow */}
+          <span className={`status-tag ${business.is_available ? "is-open" : "is-closed"}`} style={{
+            position: "absolute", top: 10, right: 10, backdropFilter: "blur(4px)",
           }}>
-            <div style={{
-              width: 5, height: 5, borderRadius: "50%",
-              background: business.is_available ? "#3D8050" : "#CBD5E1",
-            }} />
             {business.is_available ? "Open" : "Busy"}
-          </div>
+          </span>
         </div>
 
         <div style={{ padding: "16px 18px 18px", display: "flex", flexDirection: "column", flex: 1 }}>
