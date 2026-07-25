@@ -75,7 +75,7 @@ function VerifyEmailContent() {
             <p style={{ fontSize: 14, color: "var(--ink-faint)", lineHeight: 1.6, marginBottom: 28 }}>
               Your school email is confirmed. Log in to continue setting up your account and submit your student ID.
             </p>
-            <Link href="/auth/login" className="btn btn-primary" style={{ justifyContent: "center", padding: "13px 28px", borderRadius: 11, display: "inline-flex" }}>
+            <Link href="/auth/login" className="btn btn-primary" style={{ justifyContent: "center", padding: "13px 28px", borderRadius: 2, display: "inline-flex" }}>
               Continue to login
             </Link>
           </>
@@ -106,14 +106,14 @@ function VerifyEmailContent() {
             ) : (
               <form onSubmit={handleResend} style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 7 }}>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 7 }}>
                     Get a new verification link
                   </label>
                   <input type="email" value={resendEmail} onChange={e => setResendEmail(e.target.value)}
                     placeholder="you@mubas.ac.mw" required className="input" />
                 </div>
                 <button type="submit" disabled={resendState === "sending"} className="btn btn-primary"
-                  style={{ width: "100%", justifyContent: "center", padding: "13px", borderRadius: 11 }}>
+                  style={{ width: "100%", justifyContent: "center", padding: "13px", borderRadius: 2 }}>
                   {resendState === "sending" ? "Sending…" : "Resend verification email"}
                 </button>
               </form>

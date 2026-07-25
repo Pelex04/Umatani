@@ -29,25 +29,25 @@ export default function LoginPage() {
         flexDirection: "column", justifyContent: "space-between",
         padding: "56px 60px", display: "none",
       }}>
-        <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(247,244,239,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 700, color: "var(--cream)", fontSize: 15 }}>u</span>
+        <div style={{ width: 32, height: 32, borderRadius: 2, background: "rgba(250,243,231,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ fontFamily: "var(--font-serif)", fontWeight: 800, color: "var(--cream)", fontSize: 15 }}>u</span>
         </div>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(201,168,76,0.6)", marginBottom: 20 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(250,243,231,0.5)", marginBottom: 20 }}>
             UMATA?
           </div>
           <h2 style={{
-            fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 300,
+            fontFamily: "var(--font-serif)", fontWeight: 300,
             fontSize: 60, color: "var(--cream)", lineHeight: 0.9,
             letterSpacing: "-0.03em", marginBottom: 24,
           }}>
-            Welcome<br />back.
+            Welcome<br /><span style={{ fontWeight: 800 }}>back.</span>
           </h2>
-          <p style={{ color: "rgba(247,244,239,0.4)", fontSize: 14.5, lineHeight: 1.75, maxWidth: 280 }}>
+          <p style={{ color: "rgba(250,243,231,0.4)", fontSize: 14.5, lineHeight: 1.75, maxWidth: 280 }}>
             Manage your business profile, track reviews, and connect with customers across campus.
           </p>
         </div>
-        <p style={{ color: "rgba(247,244,239,0.18)", fontSize: 11 }}>
+        <p style={{ color: "rgba(250,243,231,0.18)", fontSize: 11 }}>
           Student talent · Malawi
         </p>
       </div>
@@ -72,7 +72,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 7, letterSpacing: "0.01em" }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 7, letterSpacing: "0.01em" }}>
                 School email
               </label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)}
@@ -80,7 +80,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 7, letterSpacing: "0.01em" }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 7, letterSpacing: "0.01em" }}>
                 Password
               </label>
               <div style={{ position: "relative" }}>
@@ -103,18 +103,18 @@ export default function LoginPage() {
 
             {error && (
               <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                style={{ background: "#FFF5F5", border: "1px solid #FED2D2", borderRadius: 10, padding: "11px 14px", fontSize: 13, color: "#C53030", display: "flex", alignItems: "center", gap: 8 }}>
+                style={{ background: "#FFF5F5", border: "1px solid #FED2D2", borderRadius: 2, padding: "11px 14px", fontSize: 13, color: "#C53030", display: "flex", alignItems: "center", gap: 8 }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#C53030" strokeWidth="1.5"/><path d="M8 5v3.5M8 11h.01" stroke="#C53030" strokeWidth="1.5" strokeLinecap="round"/></svg>
                 {error}
               </motion.div>
             )}
 
             <button type="submit" disabled={loading} className="btn btn-primary"
-              style={{ width: "100%", justifyContent: "center", padding: "13px", fontSize: 14, marginTop: 8, borderRadius: 11 }}>
+              style={{ width: "100%", justifyContent: "center", padding: "13px", fontSize: 14, marginTop: 8, borderRadius: 2 }}>
               {loading ? (
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <svg width="14" height="14" viewBox="0 0 14 14" style={{ animation: "spinSlow 0.8s linear infinite" }}>
-                    <circle cx="7" cy="7" r="5.5" stroke="rgba(247,244,239,0.3)" strokeWidth="1.5" fill="none"/>
+                    <circle cx="7" cy="7" r="5.5" stroke="rgba(250,243,231,0.3)" strokeWidth="1.5" fill="none"/>
                     <path d="M7 1.5A5.5 5.5 0 0112.5 7" stroke="var(--cream)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
                   </svg>
                   Signing in…

@@ -1,34 +1,36 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { ReferenceDataProvider } from "@/lib/referenceData";
 import { Header } from "@/components/layout/Header";
 
-// Previously loaded via `@import url('https://fonts.googleapis.com/...')`
-// inside globals.css — CSS @import is render-blocking and sequential: the
-// browser has to fetch and parse the main stylesheet, discover the
-// @import, open a fresh connection to a third-party origin (DNS + TLS),
-// fetch Google's CSS, parse *that*, discover the actual font file URLs,
-// then fetch those — all before text renders correctly. That waterfall
-// hit every single page load for every visitor, making it very likely
-// the single biggest hit to how fast the site *feels*, independent of
-// anything already fixed. next/font downloads the font files at build
-// time and self-hosts them from the app's own origin instead — no
-// third-party request at all, automatic font-display: swap, and it
-// exposes the same --font-serif/--font-sans variable names the rest of
-// the CSS already uses, so nothing else needs to change.
-const fraunces = Fraunces({
+// Direction 3: one typeface across the whole system instead of a
+// serif+sans pairing (Fraunces+Inter was the previous setup — that
+// pairing has become extremely common as an "AI-tool default", which
+// was a big part of the original complaint). Plus Jakarta Sans is
+// mapped to BOTH --font-serif and --font-sans so every existing
+// var(--font-serif) reference throughout the app repoints to it
+// automatically, rather than needing every call site individually
+// changed for the same visual outcome. IBM Plex Mono is new: used
+// sparingly for actual data (ratings, prices, stats) only, never
+// decoratively, adding texture without becoming a second pairing.
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["300", "400", "600", "700"],
-  style: ["normal", "italic"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-sans",
+  display: "swap",
+});
+const jakartaAsSerif = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-serif",
   display: "swap",
 });
-const inter = Inter({
+const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-sans",
+  weight: ["500"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -39,7 +41,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
+    <html lang="en" className={`${jakarta.variable} ${jakartaAsSerif.variable} ${plexMono.variable}`}>
       <body>
         <AuthProvider>
           <ReferenceDataProvider>

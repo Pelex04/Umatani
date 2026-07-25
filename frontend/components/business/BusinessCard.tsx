@@ -4,12 +4,13 @@ import Image from "next/image";
 import { Stars } from "@/components/ui/Stars";
 import type { BusinessListItem } from "@/types";
 
+// Burgundy-toned variations only — Direction 3 runs on one committed
+// ink color rather than a rainbow of pastel category hues, so these
+// differ in warmth/depth, not hue.
 const PALETTES = [
-  { bg: "#E8F0EA", text: "#1A3A2A", accent: "#2B6438" },
-  { bg: "#FBF4E0", text: "#A8882E", accent: "#C9A84C" },
-  { bg: "#EEF2FF", text: "#3730A3", accent: "#4F46E5" },
-  { bg: "#FDF2F8", text: "#9D174D", accent: "#DB2777" },
-  { bg: "#F0F9FF", text: "#075985", accent: "#0EA5E9" },
+  { bg: "#F5EBDF", text: "#43081F" },
+  { bg: "#EDE0D3", text: "#5C1129" },
+  { bg: "#F0E4D3", text: "#2B0512" },
 ];
 
 function palette(name: string) { return PALETTES[name.charCodeAt(0) % PALETTES.length]; }
@@ -26,16 +27,20 @@ export function BusinessCard({ business, school, category }: Props) {
 
   return (
     <Link href={`/businesses/${business.slug}`} style={{ textDecoration: "none", display: "block" }}>
-      <article className="card" style={{
+      <article className="card f-card" style={{
         overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", height: "100%", padding: 0,
       }}>
-        {/* Image band — real logo when present, soft gradient fallback otherwise */}
+        {/* Image band — grayscale, reveals to full color on hover (the
+            signature card interaction: meeting the real person behind
+            the trade). Falls back to a flat initials mark, no gradient,
+            when there's no photo yet. */}
         <div style={{
           position: "relative", height: 108, flexShrink: 0,
-          background: business.logo_url ? "var(--cream)" : `linear-gradient(135deg, ${pal.bg}, white)`,
+          background: business.logo_url ? "var(--cream-dark)" : pal.bg,
         }}>
           {business.logo_url ? (
             <Image
+              className="f-photo-img"
               src={business.logo_url}
               alt=""
               fill
@@ -51,11 +56,11 @@ export function BusinessCard({ business, school, category }: Props) {
               position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <div style={{
-                width: 52, height: 52, borderRadius: 14,
-                background: pal.bg, color: pal.text,
+                width: 52, height: 52, borderRadius: 2,
+                background: "var(--white)", color: pal.text,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 19,
-                letterSpacing: "-0.02em", boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                fontFamily: "var(--font-serif)", fontWeight: 800, fontSize: 18,
+                letterSpacing: "-0.01em", border: "1px solid var(--border)",
               }}>
                 {initials(business.name)}
               </div>
@@ -66,8 +71,8 @@ export function BusinessCard({ business, school, category }: Props) {
           <div style={{
             position: "absolute", top: 10, right: 10,
             display: "flex", alignItems: "center", gap: 5,
-            fontSize: 11, fontWeight: 500, padding: "3px 9px", borderRadius: 100,
-            background: business.is_available ? "rgba(240,245,241,0.95)" : "rgba(255,255,255,0.9)",
+            fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 100,
+            background: business.is_available ? "rgba(255,255,255,0.94)" : "rgba(255,255,255,0.85)",
             color: business.is_available ? "var(--forest-600)" : "var(--ink-faint)",
             backdropFilter: "blur(4px)",
           }}>
@@ -82,7 +87,7 @@ export function BusinessCard({ business, school, category }: Props) {
         <div style={{ padding: "16px 18px 18px", display: "flex", flexDirection: "column", flex: 1 }}>
           {/* Header */}
           <h3 style={{
-            fontFamily: "var(--font-serif)", fontWeight: 600, fontSize: 15.5,
+            fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 15.5,
             color: "var(--forest)", lineHeight: 1.25, letterSpacing: "-0.01em",
             marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis",
             display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical",
@@ -92,7 +97,7 @@ export function BusinessCard({ business, school, category }: Props) {
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
             {category && (
               <span style={{
-                fontSize: 11, fontWeight: 500, padding: "2px 8px",
+                fontSize: 11, fontWeight: 600, padding: "2px 9px",
                 borderRadius: 100, background: pal.bg, color: pal.text,
               }}>
                 {category.name}
@@ -118,10 +123,10 @@ export function BusinessCard({ business, school, category }: Props) {
           }}>
             <Stars rating={business.average_rating} count={business.review_count} size={12} />
             <span style={{
-              fontSize: 12, fontWeight: 500, color: "var(--forest)",
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--forest)",
               display: "flex", alignItems: "center", gap: 4,
             }}>
-              View profile
+              View
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M2.5 6h7M7 3.5 9.5 6 7 8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>

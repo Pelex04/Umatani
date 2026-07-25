@@ -13,8 +13,8 @@ import { formatDate, timeAgo } from "@/lib/utils";
 import type { Business, Review } from "@/types";
 
 const PALETTES = [
-  { bg: "#E8F0EA", text: "#1A3A2A" }, { bg: "#FBF4E0", text: "#A8882E" },
-  { bg: "#EEF2FF", text: "#3730A3" }, { bg: "#FDF2F8", text: "#9D174D" },
+  { bg: "#F5EBDF", text: "#43081F" }, { bg: "#EDE0D3", text: "#5C1129" },
+  { bg: "#F0E4D3", text: "#2B0512" },
 ];
 const pal = (name: string) => PALETTES[name.charCodeAt(0) % PALETTES.length];
 const initials = (name: string) => name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
@@ -94,14 +94,14 @@ export default function BusinessProfile() {
             style={{ objectFit: "cover" }}
           />
         ) : (
-          <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(201,168,76,0.06) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(250,243,231,0.08) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
         )}
         {/* Gradient scrim so the back button / edit link stay legible over any cover photo */}
-        {biz.cover_url && <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(15,25,20,0.35), rgba(15,25,20,0.05) 40%)" }} />}
+        {biz.cover_url && <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(33,4,16,0.35), rgba(33,4,16,0.05) 40%)" }} />}
         <div style={{ position: "absolute", top: 20, left: 24, display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => router.back()} style={{ background: "rgba(247,244,239,0.1)", border: "none", borderRadius: 8, padding: "7px 14px", cursor: "pointer", color: "rgba(247,244,239,0.7)", fontSize: 12.5, fontFamily: "var(--font-sans)", display: "flex", alignItems: "center", gap: 6, transition: "background 0.15s" }}
-          onMouseEnter={e => (e.currentTarget.style.background = "rgba(247,244,239,0.16)")}
-          onMouseLeave={e => (e.currentTarget.style.background = "rgba(247,244,239,0.1)")}>
+          <button onClick={() => router.back()} style={{ background: "rgba(250,243,231,0.1)", border: "none", borderRadius: 2, padding: "7px 14px", cursor: "pointer", color: "rgba(250,243,231,0.7)", fontSize: 12.5, fontFamily: "var(--font-sans)", display: "flex", alignItems: "center", gap: 6, transition: "background 0.15s" }}
+          onMouseEnter={e => (e.currentTarget.style.background = "rgba(250,243,231,0.16)")}
+          onMouseLeave={e => (e.currentTarget.style.background = "rgba(250,243,231,0.1)")}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Back
           </button>
@@ -114,7 +114,7 @@ export default function BusinessProfile() {
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: -36, marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
             <div style={{
-              width: 72, height: 72, borderRadius: 16,
+              width: 72, height: 72, borderRadius: 2,
               background: biz.logo_url ? "var(--cream)" : color.bg, color: color.text,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 26,
@@ -176,12 +176,12 @@ export default function BusinessProfile() {
                     <p className="eyebrow" style={{ marginBottom: 14 }}>Services</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {biz.services.map(svc => (
-                        <div key={svc.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "white", borderRadius: 12, border: "1px solid var(--border)" }}>
+                        <div key={svc.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "white", borderRadius: 2, border: "1px solid var(--border)" }}>
                           <div>
                             <p style={{ fontWeight: 500, fontSize: 13.5, color: "var(--forest)", marginBottom: svc.description ? 2 : 0 }}>{svc.name}</p>
                             {svc.description && <p style={{ fontSize: 12, color: "var(--ink-faint)" }}>{svc.description}</p>}
                           </div>
-                          {svc.price_range && <span style={{ fontSize: 12, fontWeight: 500, color: "var(--gold-dark)", background: "var(--gold-light)", padding: "4px 10px", borderRadius: 8, flexShrink: 0, marginLeft: 12 }}>{svc.price_range}</span>}
+                          {svc.price_range && <span style={{ fontSize: 12, fontWeight: 500, color: "var(--gold-dark)", background: "var(--gold-light)", padding: "4px 10px", borderRadius: 2, flexShrink: 0, marginLeft: 12 }}>{svc.price_range}</span>}
                         </div>
                       ))}
                     </div>
@@ -197,7 +197,7 @@ export default function BusinessProfile() {
                   ? <EmptyState text="No portfolio items yet" />
                   : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
                       {biz.portfolio_items.map(item => (
-                        <div key={item.id} style={{ aspectRatio: "1", borderRadius: 12, overflow: "hidden", background: "var(--forest-100)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                        <div key={item.id} style={{ aspectRatio: "1", borderRadius: 2, overflow: "hidden", background: "var(--forest-100)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                           {item.item_type === "image"
                             ? <Image src={item.display_url} alt={item.caption ?? ""} fill sizes="(max-width: 640px) 50vw, 200px" style={{ objectFit: "cover" }} />
                             : <a href={item.display_url} target="_blank" rel="noopener" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, color: "var(--forest-600)", padding: 16, textAlign: "center" }}>
@@ -216,7 +216,7 @@ export default function BusinessProfile() {
             {tab === "reviews" && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
                 {user && !isOwner && !revDone && (
-                  <form onSubmit={submitReview} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 14, padding: 18, marginBottom: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+                  <form onSubmit={submitReview} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 18, marginBottom: 20, display: "flex", flexDirection: "column", gap: 12 }}>
                     <p className="eyebrow">Write a review</p>
                     <div style={{ display: "flex", gap: 4 }}>
                       {[1,2,3,4,5].map(i => (
@@ -236,8 +236,8 @@ export default function BusinessProfile() {
                     </button>
                   </form>
                 )}
-                {revDone && <div style={{ background: "var(--forest-100)", borderRadius: 10, padding: "12px 14px", fontSize: 13.5, color: "var(--forest-600)", marginBottom: 20, fontWeight: 500 }}>✓ Review submitted. Thank you!</div>}
-                {!user && <div style={{ background: "var(--forest-50)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px", fontSize: 13.5, color: "var(--ink-muted)", marginBottom: 20 }}>
+                {revDone && <div style={{ background: "var(--forest-100)", borderRadius: 2, padding: "12px 14px", fontSize: 13.5, color: "var(--forest-600)", marginBottom: 20, fontWeight: 500 }}>✓ Review submitted. Thank you!</div>}
+                {!user && <div style={{ background: "var(--forest-50)", border: "1px solid var(--border)", borderRadius: 2, padding: "12px 14px", fontSize: 13.5, color: "var(--ink-muted)", marginBottom: 20 }}>
                   <Link href="/auth/login" style={{ color: "var(--forest)", fontWeight: 500 }}>Sign in</Link> to leave a review.
                 </div>}
                 {revLoad && reviews.length === 0
@@ -246,7 +246,7 @@ export default function BusinessProfile() {
                   ? <EmptyState text="No reviews yet" />
                   : <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                       {reviews.map(rev => (
-                        <div key={rev.id} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, padding: 16 }}>
+                        <div key={rev.id} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 16 }}>
                           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                               <Stars rating={rev.rating} size={13} />
@@ -256,7 +256,7 @@ export default function BusinessProfile() {
                           </div>
                           <p style={{ fontSize: 13.5, color: "var(--ink-muted)", lineHeight: 1.65 }}>{rev.comment}</p>
                           {rev.reply && (
-                            <div style={{ marginTop: 12, background: "var(--forest-50)", borderRadius: 8, padding: "10px 12px", borderLeft: "3px solid var(--forest-400)" }}>
+                            <div style={{ marginTop: 12, background: "var(--forest-50)", borderRadius: 2, padding: "10px 12px", borderLeft: "3px solid var(--forest-400)" }}>
                               <p style={{ fontSize: 11.5, fontWeight: 600, color: "var(--forest)", marginBottom: 4 }}>{biz.name} replied</p>
                               <p style={{ fontSize: 13, color: "var(--ink-muted)" }}>{rev.reply.content}</p>
                             </div>
@@ -276,7 +276,7 @@ export default function BusinessProfile() {
 
           {/* Right — contact sidebar */}
           <div className="biz-detail-sidebar" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 14, padding: 18 }}>
+            <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 18 }}>
               <p className="eyebrow" style={{ marginBottom: 14 }}>Contact</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {biz.whatsapp && (
@@ -309,7 +309,7 @@ export default function BusinessProfile() {
               </div>
             </div>
 
-            <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 14, padding: 16 }}>
+            <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 16 }}>
               <p style={{ fontSize: 11, color: "var(--ink-faint)", marginBottom: 4 }}>Member since</p>
               <p style={{ fontSize: 13, fontWeight: 500, color: "var(--forest)" }}>{formatDate(biz.created_at)}</p>
             </div>

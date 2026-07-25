@@ -19,11 +19,11 @@ export function Header() {
   const navLink = (label: string, href: string) => (
     <Link key={href} href={href} onClick={() => setMobile(false)} style={{
       display: "block", textDecoration: "none", fontSize: 13.5, fontWeight: 500,
-      color: "#4B5563", padding: "7px 12px", borderRadius: 8,
+      color: "var(--ink-muted)", padding: "7px 12px", borderRadius: 2,
       transition: "background 0.15s, color 0.15s",
     }}
     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--forest-100)"; (e.currentTarget as HTMLElement).style.color = "var(--forest)"; }}
-    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = "#4B5563"; }}>
+    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = "var(--ink-muted)"; }}>
       {label}
     </Link>
   );
@@ -32,9 +32,9 @@ export function Header() {
     <>
       <header style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(247,244,239,0.94)",
+        background: "rgba(250,243,231,0.94)",
         backdropFilter: "blur(14px)",
-        borderBottom: "1px solid rgba(26,58,42,0.07)",
+        borderBottom: "1px solid rgba(67,8,31,0.09)",
       }}>
         <div style={{
           maxWidth: 1200, margin: "0 auto",
@@ -45,13 +45,13 @@ export function Header() {
           {/* Logo */}
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             <div style={{
-              width: 26, height: 26, borderRadius: 7,
+              width: 26, height: 26, borderRadius: 2,
               background: "var(--forest)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 700, color: "var(--cream)", fontSize: 13, lineHeight: 1 }}>u</span>
+              <span style={{ fontFamily: "var(--font-serif)", fontWeight: 800, color: "var(--cream)", fontSize: 13, lineHeight: 1 }}>u</span>
             </div>
-            <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 700, color: "var(--forest)", fontSize: 18, letterSpacing: "-0.025em", lineHeight: 1 }}>
+            <span style={{ fontFamily: "var(--font-serif)", fontWeight: 800, color: "var(--forest)", fontSize: 18, letterSpacing: "-0.02em", lineHeight: 1 }}>
               umata<span style={{ opacity: 0.45 }}>?</span>
             </span>
           </Link>
@@ -66,11 +66,11 @@ export function Header() {
             {!user ? (
               <>
                 <Link href="/auth/login" className="header-desktop-only" style={{
-                  textDecoration: "none", fontSize: 13.5, fontWeight: 500, color: "#4B5563",
-                  padding: "7px 12px", borderRadius: 8, transition: "all 0.15s",
+                  textDecoration: "none", fontSize: 13.5, fontWeight: 500, color: "var(--ink-muted)",
+                  padding: "7px 12px", borderRadius: 2, transition: "all 0.15s",
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--forest-100)"; (e.currentTarget as HTMLElement).style.color = "var(--forest)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = "#4B5563"; }}>
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = "var(--ink-muted)"; }}>
                   Sign in
                 </Link>
                 <Link href="/auth/register" className="btn btn-primary header-desktop-only" style={{ fontSize: 13, padding: "8px 16px" }}>
@@ -81,7 +81,7 @@ export function Header() {
               <div style={{ position: "relative" }} className="header-desktop-only">
                 <button onClick={() => setMenu(!menu)} style={{
                   display: "flex", alignItems: "center", gap: 7,
-                  padding: "6px 10px", borderRadius: 10,
+                  padding: "6px 10px", borderRadius: 2,
                   border: "none", background: "transparent", cursor: "pointer",
                   transition: "background 0.15s",
                 }}
@@ -95,7 +95,7 @@ export function Header() {
                   }}>
                     {user.full_name[0].toUpperCase()}
                   </div>
-                  <span style={{ fontSize: 13.5, fontWeight: 500, color: "#374151" }}>
+                  <span style={{ fontSize: 13.5, fontWeight: 500, color: "var(--forest)" }}>
                     {user.full_name.split(" ")[0]}
                   </span>
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
@@ -109,8 +109,8 @@ export function Header() {
                     <div style={{ position: "fixed", inset: 0, zIndex: 10 }} onClick={() => setMenu(false)} />
                     <div style={{
                       position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 20,
-                      width: 200, background: "white", borderRadius: 12,
-                      border: "1px solid rgba(26,58,42,0.09)",
+                      width: 200, background: "white", borderRadius: 2,
+                      border: "1px solid rgba(67,8,31,0.09)",
                       boxShadow: "0 8px 28px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06)",
                       overflow: "hidden", animation: "scaleIn 0.15s ease-out",
                     }}>
@@ -120,7 +120,7 @@ export function Header() {
                       </div>
                       <div style={{ padding: 6 }}>
                         <Link href={user.role === "admin" ? "/admin" : "/dashboard"} onClick={() => setMenu(false)}
-                          style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 10px", borderRadius: 8, fontSize: 13, color: "#374151", textDecoration: "none", fontWeight: 500, transition: "background 0.12s" }}
+                          style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 10px", borderRadius: 2, fontSize: 13, color: "var(--forest)", textDecoration: "none", fontWeight: 500, transition: "background 0.12s" }}
                           onMouseEnter={e => (e.currentTarget.style.background = "var(--forest-50)")}
                           onMouseLeave={e => (e.currentTarget.style.background = "")}>
                           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4"/></svg>
@@ -128,7 +128,7 @@ export function Header() {
                         </Link>
                         <button onClick={handleLogout} style={{
                           width: "100%", display: "flex", alignItems: "center", gap: 9,
-                          padding: "9px 10px", borderRadius: 8, fontSize: 13, color: "#DC2626",
+                          padding: "9px 10px", borderRadius: 2, fontSize: 13, color: "#DC2626",
                           background: "none", border: "none", cursor: "pointer", fontWeight: 500,
                           textAlign: "left", fontFamily: "var(--font-sans)", transition: "background 0.12s",
                         }}
@@ -147,7 +147,7 @@ export function Header() {
             {/* Mobile menu button */}
             <button onClick={() => setMobile(!mobile)} style={{
               display: "none", background: "none", border: "none", cursor: "pointer",
-              padding: 6, borderRadius: 8, color: "#4B5563",
+              padding: 6, borderRadius: 2, color: "var(--ink-muted)",
             }} className="mobile-menu-btn">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 {mobile
@@ -161,7 +161,7 @@ export function Header() {
 
         {/* Mobile nav */}
         {mobile && (
-          <div style={{ borderTop: "1px solid var(--border)", padding: "10px 16px 14px", background: "rgba(247,244,239,0.98)" }}>
+          <div style={{ borderTop: "1px solid var(--border)", padding: "10px 16px 14px", background: "rgba(250,243,231,0.98)" }}>
             {navLink("Discover", "/discover")}
             {!user && navLink("Sign in", "/auth/login")}
             {!user && navLink("List your business", "/auth/register")}
@@ -169,7 +169,7 @@ export function Header() {
             {user && (
               <button onClick={handleLogout} style={{
                 width: "100%", display: "block", textAlign: "left", fontSize: 13.5, fontWeight: 500,
-                color: "#DC2626", padding: "7px 12px", borderRadius: 8, background: "none", border: "none",
+                color: "#DC2626", padding: "7px 12px", borderRadius: 2, background: "none", border: "none",
                 cursor: "pointer", fontFamily: "var(--font-sans)",
               }}>
                 Sign out

@@ -95,7 +95,7 @@ export default function RegisterPage() {
         <p style={{ color: "var(--ink-muted)", fontSize: 14.5, lineHeight: 1.75, marginBottom: 12 }}>
           We sent a verification link to <strong style={{ color: "var(--forest)" }}>{email}</strong>. Click it to activate your account.
         </p>
-        <div style={{ background: "var(--gold-pale)", border: "1px solid rgba(201,168,76,0.25)", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "var(--gold-dark)", marginBottom: 32, textAlign: "left" }}>
+        <div style={{ background: "var(--gold-pale)", border: "1px solid rgba(201,168,76,0.25)", borderRadius: 2, padding: "12px 16px", fontSize: 13, color: "var(--gold-dark)", marginBottom: 32, textAlign: "left" }}>
           Check your spam folder if you don't see it within a few minutes.
         </div>
         <Link href="/auth/login" className="btn btn-primary" style={{ fontSize: 14 }}>Go to sign in</Link>
@@ -107,19 +107,19 @@ export default function RegisterPage() {
     <div style={{ minHeight: "calc(100vh - 58px)", display: "flex" }}>
       {/* Left brand panel (hidden on mobile, shown on desktop — see .auth-brand-panel in globals.css) */}
       <div className="auth-brand-panel" style={{ flex: "0 0 46%", background: "var(--forest)", flexDirection: "column", justifyContent: "space-between", padding: "56px 60px", display: "none" }}>
-        <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(247,244,239,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 700, color: "var(--cream)", fontSize: 15 }}>u</span>
+        <div style={{ width: 32, height: 32, borderRadius: 2, background: "rgba(250,243,231,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ fontFamily: "var(--font-serif)", fontWeight: 800, color: "var(--cream)", fontSize: 15 }}>u</span>
         </div>
         <div>
-          <p className="eyebrow" style={{ color: "rgba(201,168,76,0.6)", marginBottom: 20 }}>Join Umata?</p>
-          <h2 style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 300, fontSize: 60, color: "var(--cream)", lineHeight: 0.9, letterSpacing: "-0.03em", marginBottom: 24 }}>
-            Show Malawi<br />what you do.
+          <p className="eyebrow" style={{ color: "rgba(250,243,231,0.5)", marginBottom: 20 }}>Join Umata?</p>
+          <h2 style={{ fontFamily: "var(--font-serif)", fontWeight: 300, fontSize: 60, color: "var(--cream)", lineHeight: 0.9, letterSpacing: "-0.03em", marginBottom: 24 }}>
+            Show Malawi<br /><span style={{ fontWeight: 800 }}>what you do.</span>
           </h2>
-          <p style={{ color: "rgba(247,244,239,0.4)", fontSize: 14.5, lineHeight: 1.75, maxWidth: 280 }}>
+          <p style={{ color: "rgba(250,243,231,0.4)", fontSize: 14.5, lineHeight: 1.75, maxWidth: 280 }}>
             Free for student entrepreneurs. Reach customers across your campus and beyond.
           </p>
         </div>
-        <p style={{ color: "rgba(247,244,239,0.18)", fontSize: 11 }}>Always free · Malawi</p>
+        <p style={{ color: "rgba(250,243,231,0.18)", fontSize: 11 }}>Always free · Malawi</p>
       </div>
 
       {/* Right form */}
@@ -147,11 +147,11 @@ export default function RegisterPage() {
                 </p>
                 <form onSubmit={next} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 7 }}>Full name</label>
+                    <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 7 }}>Full name</label>
                     <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Rasta Kadema" required className="input" />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 7 }}>School email</label>
+                    <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 7 }}>School email</label>
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@mubas.ac.mw" required className="input" />
                     {matchStatus === "idle" && (
                       <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 6 }}>Must be your official university email address</p>
@@ -175,7 +175,7 @@ export default function RegisterPage() {
                     type="submit"
                     className="btn btn-primary"
                     disabled={!fullName.trim() || matchStatus !== "matched"}
-                    style={{ width: "100%", justifyContent: "center", padding: "13px", marginTop: 4, borderRadius: 11, opacity: (!fullName.trim() || matchStatus !== "matched") ? 0.55 : 1, cursor: (!fullName.trim() || matchStatus !== "matched") ? "not-allowed" : "pointer" }}
+                    style={{ width: "100%", justifyContent: "center", padding: "13px", marginTop: 4, borderRadius: 2, opacity: (!fullName.trim() || matchStatus !== "matched") ? 0.55 : 1, cursor: (!fullName.trim() || matchStatus !== "matched") ? "not-allowed" : "pointer" }}
                   >
                     Continue
                   </button>
@@ -194,7 +194,7 @@ export default function RegisterPage() {
                 <form onSubmit={next} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   {matchedSchool ? (
                     <div style={{
-                      padding: "16px 18px", borderRadius: 11, border: "1.5px solid var(--forest)",
+                      padding: "16px 18px", borderRadius: 2, border: "1.5px solid var(--forest)",
                       background: "var(--forest-50)",
                     }}>
                       <div style={{ fontSize: 14.5, fontWeight: 500, color: "var(--forest)", marginBottom: 2 }}>{matchedSchool.name}</div>
@@ -208,7 +208,7 @@ export default function RegisterPage() {
                   {error && <ErrorMsg msg={error} />}
                   <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
                     <button type="button" onClick={() => setStep(0)} className="btn btn-outline" style={{ flex: 1, justifyContent: "center" }}>Back</button>
-                    <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: "center", padding: "13px", borderRadius: 11 }}>Continue</button>
+                    <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: "center", padding: "13px", borderRadius: 2 }}>Continue</button>
                   </div>
                 </form>
               </motion.div>
@@ -221,7 +221,7 @@ export default function RegisterPage() {
                 <h1 style={{ fontFamily: "var(--font-serif)", fontWeight: 300, fontSize: 36, color: "var(--forest)", letterSpacing: "-0.025em", marginBottom: 36 }}>Set a password</h1>
                 <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 7 }}>Password</label>
+                    <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 7 }}>Password</label>
                     <div style={{ position: "relative" }}>
                       <input type={show ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="At least 10 characters" required className="input" style={{ paddingRight: 54 }} />
                       <button type="button" onClick={() => setShow(!show)} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 600, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -237,13 +237,13 @@ export default function RegisterPage() {
                     </div>
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 7 }}>Confirm password</label>
+                    <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 7 }}>Confirm password</label>
                     <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Repeat your password" required className="input" />
                   </div>
                   {error && <ErrorMsg msg={error} />}
                   <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
                     <button type="button" onClick={() => setStep(1)} className="btn btn-outline" style={{ flex: 1, justifyContent: "center" }}>Back</button>
-                    <button type="submit" disabled={loading} className="btn btn-primary" style={{ flex: 1, justifyContent: "center", padding: "13px", borderRadius: 11 }}>
+                    <button type="submit" disabled={loading} className="btn btn-primary" style={{ flex: 1, justifyContent: "center", padding: "13px", borderRadius: 2 }}>
                       {loading ? "Creating…" : "Create account"}
                     </button>
                   </div>
@@ -260,7 +260,7 @@ export default function RegisterPage() {
 function ErrorMsg({ msg }: { msg: string }) {
   return (
     <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-      style={{ background: "#FFF5F5", border: "1px solid #FED2D2", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#C53030", display: "flex", alignItems: "center", gap: 8 }}>
+      style={{ background: "#FFF5F5", border: "1px solid #FED2D2", borderRadius: 2, padding: "10px 14px", fontSize: 13, color: "#C53030", display: "flex", alignItems: "center", gap: 8 }}>
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#C53030" strokeWidth="1.5"/><path d="M8 5v3.5M8 11h.01" stroke="#C53030" strokeWidth="1.5" strokeLinecap="round"/></svg>
       {msg}
     </motion.div>

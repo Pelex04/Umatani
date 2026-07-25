@@ -75,13 +75,13 @@ function DiscoverInner() {
     minRating  && `${minRating}+ stars`,
   ].filter(Boolean) as string[];
 
-  const S = { /* label */ L: { fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "#A8882E", display: "block", marginBottom: 6 } };
+  const S = { /* label */ L: { fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "var(--ink-muted)", display: "block", marginBottom: 6 } };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F7F4EF" }}>
+    <div style={{ minHeight: "100vh", background: "#FAF3E7" }}>
       {/* Sticky search bar */}
       <div style={{
-        background: "white", borderBottom: "1px solid rgba(26,58,42,0.07)",
+        background: "white", borderBottom: "1px solid rgba(67,8,31,0.07)",
         position: "sticky", top: 58, zIndex: 30,
       }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "14px 24px" }}>
@@ -103,13 +103,13 @@ function DiscoverInner() {
             </div>
             <button onClick={() => setShowFilter(!showFilter)}
               className="btn btn-outline"
-              style={{ gap: 6, background: showFilter ? "#E8F0EA" : "", flexShrink: 0 }}>
+              style={{ gap: 6, background: showFilter ? "var(--forest-100)" : "", flexShrink: 0 }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                 <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
               Filters
               {activeFilters.length > 0 && (
-                <span style={{ background: "#1A3A2A", color: "#F7F4EF", fontSize: 10, fontWeight: 600, borderRadius: 100, padding: "1px 6px" }}>
+                <span style={{ background: "#43081F", color: "#FAF3E7", fontSize: 10, fontWeight: 600, borderRadius: 100, padding: "1px 6px" }}>
                   {activeFilters.length}
                 </span>
               )}
@@ -122,7 +122,7 @@ function DiscoverInner() {
           {showFilter && (
             <div className="anim-in discover-filter-grid" style={{
               marginTop: 14, paddingTop: 14,
-              borderTop: "1px solid rgba(26,58,42,0.07)",
+              borderTop: "1px solid rgba(67,8,31,0.07)",
               display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16,
             }}>
               <div>
@@ -155,13 +155,13 @@ function DiscoverInner() {
               {categoryId && catMap[categoryId] && (
                 <span className="badge badge-green" style={{ gap: 6 }}>
                   {catMap[categoryId].name}
-                  <button onClick={() => setCategoryId("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1, color: "#2B6438", fontSize: 14 }}>×</button>
+                  <button onClick={() => setCategoryId("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1, color: "var(--forest-600)", fontSize: 14 }}>×</button>
                 </span>
               )}
               {minRating && (
                 <span className="badge badge-gold" style={{ gap: 6 }}>
                   {minRating}+ stars
-                  <button onClick={() => setMinRating("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1, color: "#A8882E", fontSize: 14 }}>×</button>
+                  <button onClick={() => setMinRating("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1, color: "var(--forest-600)", fontSize: 14 }}>×</button>
                 </span>
               )}
               <button onClick={() => { setCategoryId(""); setSchoolId(""); setMinRating(""); setKeyword(""); }}
@@ -175,7 +175,7 @@ function DiscoverInner() {
 
       {/* Results */}
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
-        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 20 }}>
+        <p style={{ fontSize: 13, color: "#8C7278", marginBottom: 20 }}>
           {loading ? "Searching…" : total === 0 ? "No businesses found" : `${total} business${total === 1 ? "" : "es"} found`}
         </p>
 
@@ -190,8 +190,8 @@ function DiscoverInner() {
 
         {!loading && total === 0 && (
           <div style={{ textAlign: "center", padding: "80px 0" }}>
-            <p style={{ fontFamily: "var(--font-serif)", fontSize: 22, color: "#1A3A2A", marginBottom: 8 }}>Nothing found</p>
-            <p style={{ fontSize: 14, color: "#9CA3AF" }}>Try different keywords or clear some filters.</p>
+            <p style={{ fontFamily: "var(--font-serif)", fontSize: 22, color: "#43081F", marginBottom: 8 }}>Nothing found</p>
+            <p style={{ fontSize: 14, color: "#8C7278" }}>Try different keywords or clear some filters.</p>
           </div>
         )}
 
@@ -209,7 +209,7 @@ function DiscoverInner() {
 
 export default function DiscoverPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#F7F4EF", display: "flex", alignItems: "center", justifyContent: "center", color: "#9CA3AF" }}>Loading…</div>}>
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#FAF3E7", display: "flex", alignItems: "center", justifyContent: "center", color: "#8C7278" }}>Loading…</div>}>
       <DiscoverInner />
     </Suspense>
   );

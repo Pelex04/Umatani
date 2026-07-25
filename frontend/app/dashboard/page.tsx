@@ -71,11 +71,11 @@ export default function DashboardPage() {
   const ss = statusStyle[biz?.status ?? "pending"] ?? statusStyle.pending;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F4F6F4" }}>
+    <div style={{ minHeight: "100vh", background: "#FAF3E7" }}>
       {/* Page header */}
       <div style={{ background: "var(--forest)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1060, margin: "0 auto", padding: "32px 28px 28px" }}>
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(201,168,76,0.65)", marginBottom: 8 }}>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(67,8,31,0.5)", marginBottom: 8 }}>
             Owner dashboard
           </p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
@@ -83,9 +83,9 @@ export default function DashboardPage() {
               Hi, {user.full_name.split(" ")[0]} 👋
             </h1>
             {biz && (
-              <Link href={`/businesses/${biz.slug}`} style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(247,244,239,0.1)", border: "1px solid rgba(247,244,239,0.15)", borderRadius: 9, padding: "8px 14px", textDecoration: "none", fontSize: 12.5, color: "rgba(247,244,239,0.75)", transition: "all 0.15s" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "rgba(247,244,239,0.16)")}
-              onMouseLeave={e => (e.currentTarget.style.background = "rgba(247,244,239,0.1)")}>
+              <Link href={`/businesses/${biz.slug}`} style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(250,243,231,0.1)", border: "1px solid rgba(250,243,231,0.15)", borderRadius: 2, padding: "8px 14px", textDecoration: "none", fontSize: 12.5, color: "rgba(250,243,231,0.75)", transition: "all 0.15s" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(250,243,231,0.16)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(250,243,231,0.1)")}>
                 <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.4"/><path d="M8 5.5v5M5.5 8h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
                 View public profile
               </Link>
@@ -101,9 +101,9 @@ export default function DashboardPage() {
         )}
 
         {user.status === "pending_id_review" && !user.student_id_submitted && (
-          <div style={{ background: "#EEF2FF", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 12, padding: "18px 20px", marginBottom: 24 }}>
-            <p style={{ fontSize: 13.5, fontWeight: 600, color: "#4338CA", marginBottom: 4 }}>Submit your student ID</p>
-            <p style={{ fontSize: 12.5, color: "#4F46E5", opacity: 0.8, marginBottom: 14 }}>
+          <div style={{ background: "#F5EBDF", border: "1px solid rgba(67,8,31,0.18)", borderRadius: 2, padding: "18px 20px", marginBottom: 24 }}>
+            <p style={{ fontSize: 13.5, fontWeight: 700, color: "var(--forest)", marginBottom: 4 }}>Submit your student ID</p>
+            <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginBottom: 14 }}>
               One last step: upload a photo of your student ID so an admin can verify your account.
             </p>
             <StudentIdUpload onSubmitted={refresh} />
@@ -120,8 +120,8 @@ export default function DashboardPage() {
 
         {/* No business yet */}
         {!biz && user.status === "verified" && (
-          <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, padding: "56px 32px", textAlign: "center" }}>
-            <div style={{ width: 56, height: 56, borderRadius: 14, background: "var(--forest-100)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+          <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: "56px 32px", textAlign: "center" }}>
+            <div style={{ width: 56, height: 56, borderRadius: 2, background: "var(--forest-100)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="var(--forest-600)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/><path d="M9 22V12h6v10" stroke="var(--forest-600)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
             <h2 style={{ fontFamily: "var(--font-serif)", fontWeight: 300, fontSize: 28, color: "var(--forest)", marginBottom: 8 }}>No business profile yet</h2>
@@ -146,7 +146,7 @@ export default function DashboardPage() {
                 { label: "Portfolio", value: biz.portfolio_items.length, sub: "items uploaded" },
                 { label: "Services", value: biz.services.length, sub: "listed" },
               ].map(stat => (
-                <div key={stat.label} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, padding: "16px" }}>
+                <div key={stat.label} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: "16px" }}>
                   <p style={{ fontSize: 11, color: "var(--ink-faint)", marginBottom: 8, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em" }}>{stat.label}</p>
                   {stat.badge
                     ? <span style={{ ...ss, fontSize: 12, fontWeight: 600, padding: "4px 10px", borderRadius: 100, display: "inline-block" }}>{stat.value}</span>
@@ -158,7 +158,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Tab panel */}
-            <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden" }}>
+            <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
               <div style={{ display: "flex", borderBottom: "1px solid var(--border)", overflowX: "auto" }} className="scrollbar-hide">
                 {(["overview","profile","services"] as Tab[]).map(t => (
                   <button key={t} onClick={() => setTab(t)} style={{
@@ -176,7 +176,7 @@ export default function DashboardPage() {
                 {tab === "overview" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-                      <div style={{ width: 52, height: 52, borderRadius: 12, background: "var(--forest-100)", color: "var(--forest)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 20, flexShrink: 0 }}>
+                      <div style={{ width: 52, height: 52, borderRadius: 2, background: "var(--forest-100)", color: "var(--forest)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 20, flexShrink: 0 }}>
                         {biz.name[0]}
                       </div>
                       <div>
@@ -190,8 +190,8 @@ export default function DashboardPage() {
                         { label: "Edit profile", icon: "M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z", action: () => setTab("profile") },
                         { label: "View live profile", icon: "M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3", action: () => window.open(`/businesses/${biz.slug}`, "_blank") },
                       ].map(q => (
-                        <button key={q.label} onClick={q.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: 11, border: "1px solid var(--border)", background: "var(--cream)", cursor: "pointer", transition: "all 0.15s" }}
-                        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(26,58,42,0.2)"; e.currentTarget.style.background = "var(--forest-50)"; }}
+                        <button key={q.label} onClick={q.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: 2, border: "1px solid var(--border)", background: "var(--cream)", cursor: "pointer", transition: "all 0.15s" }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(67,8,31,0.2)"; e.currentTarget.style.background = "var(--forest-50)"; }}
                         onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--cream)"; }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--forest-600)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d={q.icon}/></svg>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
                       ))}
                     </div>
                     {/* Availability toggle */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "var(--cream)", borderRadius: 11, border: "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "var(--cream)", borderRadius: 2, border: "1px solid var(--border)" }}>
                       <div>
                         <p style={{ fontSize: 13.5, fontWeight: 500, color: "var(--forest)", marginBottom: 2 }}>Availability</p>
                         <p style={{ fontSize: 12, color: "var(--ink-faint)" }}>{available ? "Shown as open to customers" : "Shown as currently busy"}</p>
@@ -221,24 +221,24 @@ export default function DashboardPage() {
                     <BusinessImageUpload biz={biz} onUpdated={b => setBiz(b)} />
                     <div className="dash-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                       <div>
-                        <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Business name</label>
+                        <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 6 }}>Business name</label>
                         <input value={name} onChange={e => setName(e.target.value)} className="input" required />
                       </div>
                       <div>
-                        <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Category</label>
+                        <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 6 }}>Category</label>
                         <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="input">
                           {cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                       </div>
                     </div>
                     <div>
-                      <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Description</label>
+                      <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 6 }}>Description</label>
                       <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="input" style={{ resize: "vertical" }} required />
                     </div>
                     <div className="dash-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                       {([["WhatsApp", whatsapp, setWhatsapp, "+265991234567"], ["Phone", phone, setPhone, "+265..."], ["Contact email", email, setEmail, ""], ["Website", website, setWebsite, "https://..."], ["Instagram", instagram, setInstagram, "@username"]] as [string, string, (v: string) => void, string][]).map(([l, v, fn, ph]) => (
                         <div key={l}>
-                          <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{l}</label>
+                          <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 6 }}>{l}</label>
                           <input value={v} onChange={e => fn(e.target.value)} placeholder={ph} className="input" />
                         </div>
                       ))}
@@ -267,12 +267,12 @@ export default function DashboardPage() {
                         </div>
                       : <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                           {biz.services.map(svc => (
-                            <div key={svc.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "var(--cream)", border: "1px solid var(--border)", borderRadius: 11 }}>
+                            <div key={svc.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "var(--cream)", border: "1px solid var(--border)", borderRadius: 2 }}>
                               <div>
                                 <p style={{ fontWeight: 500, fontSize: 13.5, color: "var(--forest)" }}>{svc.name}</p>
                                 {svc.description && <p style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 2 }}>{svc.description}</p>}
                               </div>
-                              {svc.price_range && <span style={{ fontSize: 12, fontWeight: 500, background: "var(--gold-light)", color: "var(--gold-dark)", padding: "4px 10px", borderRadius: 8, flexShrink: 0, marginLeft: 12 }}>{svc.price_range}</span>}
+                              {svc.price_range && <span style={{ fontSize: 12, fontWeight: 500, background: "var(--gold-light)", color: "var(--gold-dark)", padding: "4px 10px", borderRadius: 2, flexShrink: 0, marginLeft: 12 }}>{svc.price_range}</span>}
                             </div>
                           ))}
                         </div>
@@ -291,12 +291,12 @@ export default function DashboardPage() {
 function StatusBanner({ tone, title, body }: { tone: "amber" | "indigo" | "red"; title: string; body: string }) {
   const palette = {
     amber:  { bg: "#FBF4E0", border: "rgba(201,168,76,0.3)",  iconBg: "rgba(201,168,76,0.15)", strong: "#A8882E", soft: "#856A1A" },
-    indigo: { bg: "#EEF2FF", border: "rgba(99,102,241,0.2)",  iconBg: "rgba(99,102,241,0.1)",  strong: "#4338CA", soft: "#4F46E5" },
-    red:    { bg: "#FFF0F0", border: "rgba(192,57,43,0.2)",   iconBg: "rgba(192,57,43,0.1)",   strong: "#C0392B", soft: "#C0392B" },
+    indigo: { bg: "#F5EBDF", border: "rgba(67,8,31,0.18)",    iconBg: "rgba(67,8,31,0.08)",    strong: "var(--forest)", soft: "var(--ink-muted)" },
+    red:    { bg: "#FFF0F0", border: "rgba(192,57,43,0.2)",   iconBg: "rgba(192,57,43,0.1)",   strong: "#C0392B",       soft: "#C0392B" },
   }[tone];
   return (
     <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-      style={{ background: palette.bg, border: `1px solid ${palette.border}`, borderRadius: 12, padding: "14px 18px", marginBottom: 24, display: "flex", alignItems: "flex-start", gap: 12 }}>
+      style={{ background: palette.bg, border: `1px solid ${palette.border}`, borderRadius: 2, padding: "14px 18px", marginBottom: 24, display: "flex", alignItems: "flex-start", gap: 12 }}>
       <div style={{ width: 32, height: 32, borderRadius: "50%", background: palette.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke={palette.strong} strokeWidth="1.5"/><path d="M8 5v3.5M8 11h.01" stroke={palette.strong} strokeWidth="1.5" strokeLinecap="round"/></svg>
       </div>
@@ -329,10 +329,10 @@ function BusinessImageUpload({ biz, onUpdated }: { biz: Business; onUpdated: (b:
 
   return (
     <div style={{ marginBottom: 4 }}>
-      <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 8 }}>Business photos</label>
+      <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 8 }}>Business photos</label>
 
       {/* Cover band with logo overlapping, mirrors the public profile layout */}
-      <div style={{ position: "relative", height: 120, borderRadius: 12, overflow: "hidden", background: "var(--forest-50)", border: "1px solid var(--border)" }}>
+      <div style={{ position: "relative", height: 120, borderRadius: 2, overflow: "hidden", background: "var(--forest-50)", border: "1px solid var(--border)" }}>
         {biz.cover_url && (
           <Image src={biz.cover_url} alt="" fill sizes="600px" style={{ objectFit: "cover" }} />
         )}
@@ -343,7 +343,7 @@ function BusinessImageUpload({ biz, onUpdated }: { biz: Business; onUpdated: (b:
           style={{ position: "absolute", bottom: 8, right: 8 }}
         />
         <div style={{
-          position: "absolute", left: 14, bottom: -22, width: 56, height: 56, borderRadius: 12,
+          position: "absolute", left: 14, bottom: -22, width: 56, height: 56, borderRadius: 2,
           border: "3px solid white", overflow: "hidden", background: "white", boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
         }}>
           {biz.logo_url && (
@@ -371,7 +371,7 @@ function UploadTrigger({ label, onFile, disabled, style }: { label: string; onFi
     <label style={{
       display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 500,
       color: "var(--forest)", background: "white", border: "1px solid var(--border-med)",
-      borderRadius: 8, padding: "6px 12px", cursor: disabled ? "default" : "pointer",
+      borderRadius: 2, padding: "6px 12px", cursor: disabled ? "default" : "pointer",
       opacity: disabled ? 0.6 : 1, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", ...style,
     }}>
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 11V3M8 3L5 6M8 3l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M2.5 11v1.5A1.5 1.5 0 004 14h8a1.5 1.5 0 001.5-1.5V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
@@ -408,7 +408,7 @@ function StudentIdUpload({ onSubmitted }: { onSubmitted: () => void | Promise<vo
       <label style={{
         display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, fontWeight: 500,
         color: "#4338CA", background: "white", border: "1px solid rgba(99,102,241,0.3)",
-        borderRadius: 9, padding: "9px 14px", cursor: "pointer",
+        borderRadius: 2, padding: "9px 14px", cursor: "pointer",
       }}>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 11V3M8 3L5 6M8 3l3 3" stroke="#4338CA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M2.5 11v1.5A1.5 1.5 0 004 14h8a1.5 1.5 0 001.5-1.5V11" stroke="#4338CA" strokeWidth="1.5" strokeLinecap="round"/></svg>
         {file ? file.name : "Choose photo"}
@@ -427,9 +427,9 @@ function CreateForm({ cats, onCreated, onCancel }: { cats: Category[]; onCreated
   const submit = async (e: React.FormEvent) => { e.preventDefault(); setSaving(true); setError(""); try { const b = await api.businesses.create({ name, description: desc, category_id: catId, services: [] }); onCreated(b as any); } catch (err: any) { setError(err.message ?? "Failed."); } finally { setSaving(false); } };
   return (
     <form onSubmit={submit} style={{ maxWidth: 440, margin: "0 auto", textAlign: "left", display: "flex", flexDirection: "column", gap: 14 }}>
-      <div><label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Business name</label><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Rasta Designs" required className="input" /></div>
-      <div><label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Category</label><select value={catId} onChange={e => setCatId(e.target.value)} className="input" required><option value="">Select…</option>{cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-      <div><label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Description</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="What does your business do?" required className="input" style={{ resize: "none" }} /></div>
+      <div><label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 6 }}>Business name</label><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Rasta Designs" required className="input" /></div>
+      <div><label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 6 }}>Category</label><select value={catId} onChange={e => setCatId(e.target.value)} className="input" required><option value="">Select…</option>{cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+      <div><label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 6 }}>Description</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="What does your business do?" required className="input" style={{ resize: "none" }} /></div>
       {error && <p style={{ fontSize: 12.5, color: "#C53030" }}>{error}</p>}
       <div style={{ display: "flex", gap: 10 }}>
         <button type="button" onClick={onCancel} className="btn btn-outline" style={{ flex: 1, justifyContent: "center" }}>Cancel</button>
@@ -440,5 +440,5 @@ function CreateForm({ cats, onCreated, onCancel }: { cats: Category[]; onCreated
 }
 
 function DashSkeleton() {
-  return <div style={{ minHeight: "100vh", background: "#F4F6F4" }}><div style={{ background: "var(--forest)", height: 120 }} /><div style={{ maxWidth: 1060, margin: "0 auto", padding: 28, display: "flex", flexDirection: "column", gap: 16 }}><div className="dash-skeleton-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>{[1,2,3,4].map(i => <Skeleton key={i} h={80} r={12} />)}</div><Skeleton h={400} r={16} /></div></div>;
+  return <div style={{ minHeight: "100vh", background: "#FAF3E7" }}><div style={{ background: "var(--forest)", height: 120 }} /><div style={{ maxWidth: 1060, margin: "0 auto", padding: 28, display: "flex", flexDirection: "column", gap: 16 }}><div className="dash-skeleton-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>{[1,2,3,4].map(i => <Skeleton key={i} h={80} r={2} />)}</div><Skeleton h={400} r={2} /></div></div>;
 }
