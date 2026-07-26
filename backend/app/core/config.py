@@ -76,6 +76,12 @@ class Settings(BaseSettings):
     # --- Rate limiting ---
     RATE_LIMIT_DEFAULT: str = "100/minute"
     RATE_LIMIT_AUTH: str = "5/minute"
+    # Reports accept submissions from unauthenticated visitors by design
+    # (so anyone can flag a scam even without an account) — that same
+    # openness is exactly what makes it a spam target, so it gets a much
+    # tighter limit than an authenticated action would need.
+    RATE_LIMIT_SUPPORT: str = "5/hour"
+    RATE_LIMIT_REVIEWS: str = "10/hour"
 
     # --- File upload limits ---
     MAX_UPLOAD_SIZE_MB: int = 10

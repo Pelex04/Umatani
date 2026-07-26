@@ -1,10 +1,12 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.deps import get_current_user, get_verified_business_owner, require_role
+from app.core.limiter import limiter
 from app.modules.auth.models import User, UserRole
 from app.modules.reviews.schemas import (
     PaginatedReviewResponse,
@@ -41,7 +43,9 @@ async def list_reviews(
 
 
 @router.post("", response_model=ReviewPublicResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit(get_settings().RATE_LIMIT_REVIEWS)
 async def create_review(
+    request: Request,
     payload: ReviewCreateRequest,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

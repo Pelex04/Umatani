@@ -39,6 +39,14 @@ export default function BusinessProfile() {
   const [revError, setRevError] = useState("");
   const [revDone,  setRevDone]  = useState(false);
 
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDetails, setReportDetails] = useState("");
+  const [reportHoneypot, setReportHoneypot] = useState(""); // spam trap — see form below
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportError, setReportError] = useState("");
+  const [reportDone, setReportDone] = useState(false);
+
   useEffect(() => {
     if (!slug) return;
     api.businesses.getBySlug(slug as string)
@@ -72,6 +80,27 @@ export default function BusinessProfile() {
       loadReviews(0);
     } catch (e: any) { setRevError(e.message ?? "Could not submit review."); }
     finally { setSubmitting(false); }
+  };
+
+  const submitReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (reportHoneypot) return; // a real person never sees or fills this field
+    if (reportReason.trim().length < 5) { setReportError("Please give a brief reason (at least 5 characters)."); return; }
+    if (!biz) return;
+    setReportSubmitting(true); setReportError("");
+    try {
+      await api.support.createReport({
+        report_type: "business",
+        target_id: biz.id,
+        reason: reportReason.trim(),
+        details: reportDetails.trim() || undefined,
+      });
+      setReportDone(true);
+    } catch (e: any) {
+      setReportError(e.message ?? "Could not submit report. Try again.");
+    } finally {
+      setReportSubmitting(false);
+    }
   };
 
   if (loading) return <ProfileSkeleton />;
@@ -228,7 +257,15 @@ export default function BusinessProfile() {
                       ))}
                     </div>
                     <input value={service} onChange={e => setService(e.target.value)} placeholder="Service received (optional)" className="input" style={{ fontSize: 13 }} />
-                    <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Share your experience…" rows={3} className="input" style={{ resize: "none", fontSize: 13 }} />
+                    <div>
+                      <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Share your experience…" rows={3} maxLength={2000} className="input" style={{ resize: "none", fontSize: 13 }} />
+                      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+                        <span style={{ fontSize: 11, color: comment.length > 0 && comment.length < 10 ? "#C53030" : "var(--ink-faint)" }}>
+                          {comment.length < 10 ? `${10 - comment.length} more characters needed` : " "}
+                        </span>
+                        <span style={{ fontSize: 11, color: "var(--ink-faint)" }}>{comment.length}/2000</span>
+                      </div>
+                    </div>
                     {revError && <p style={{ fontSize: 12.5, color: "#C53030" }}>{revError}</p>}
                     <button type="submit" disabled={submitting} className="btn btn-primary" style={{ alignSelf: "flex-start", fontSize: 13 }}>
                       {submitting ? "Submitting…" : "Submit review"}
@@ -253,7 +290,7 @@ export default function BusinessProfile() {
                             </div>
                             <span style={{ fontSize: 11.5, color: "var(--ink-faint)", flexShrink: 0 }}>{timeAgo(rev.created_at)}</span>
                           </div>
-                          <p style={{ fontSize: 13.5, color: "var(--ink-muted)", lineHeight: 1.65 }}>{rev.comment}</p>
+                          <p style={{ fontSize: 13.5, color: "var(--ink-muted)", lineHeight: 1.65, whiteSpace: "pre-line" }}>{rev.comment}</p>
                           {rev.reply && (
                             <div style={{ marginTop: 12, background: "var(--forest-50)", borderRadius: 2, padding: "10px 12px", borderLeft: "3px solid var(--forest-400)" }}>
                               <p style={{ fontSize: 11.5, fontWeight: 600, color: "var(--forest)", marginBottom: 4 }}>{biz.name} replied</p>
@@ -313,7 +350,7 @@ export default function BusinessProfile() {
               <p style={{ fontSize: 13, fontWeight: 500, color: "var(--forest)" }}>{formatDate(biz.created_at)}</p>
             </div>
 
-            <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "var(--ink-faint)", padding: "8px 0", transition: "color 0.15s" }}
+            <button onClick={() => setShowReport(true)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "var(--ink-faint)", padding: "8px 0", transition: "color 0.15s" }}
             onMouseEnter={e => (e.currentTarget.style.color = "#C53030")}
             onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-faint)")}>
               Report this business
@@ -321,6 +358,64 @@ export default function BusinessProfile() {
           </div>
         </div>
       </div>
+
+      {/* Report modal */}
+      {showReport && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(33,4,16,0.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={() => !reportSubmitting && setShowReport(false)}>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            onClick={e => e.stopPropagation()}
+            style={{ background: "white", borderRadius: 2, padding: 28, maxWidth: 420, width: "100%" }}>
+            {reportDone ? (
+              <>
+                <h3 style={{ fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 20, color: "var(--forest)", marginBottom: 10 }}>Report submitted</h3>
+                <p style={{ fontSize: 13.5, color: "var(--ink-muted)", lineHeight: 1.7, marginBottom: 20 }}>
+                  Thanks for flagging this. An admin will review it shortly.
+                </p>
+                <button onClick={() => { setShowReport(false); setReportDone(false); setReportReason(""); setReportDetails(""); }} className="btn btn-outline" style={{ width: "100%", justifyContent: "center" }}>
+                  Close
+                </button>
+              </>
+            ) : (
+              <form onSubmit={submitReport}>
+                <h3 style={{ fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 20, color: "var(--forest)", marginBottom: 4 }}>Report this business</h3>
+                <p style={{ fontSize: 12.5, color: "var(--ink-faint)", marginBottom: 18 }}>Tell us what's wrong. Reports are reviewed by an admin.</p>
+
+                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--forest)", marginBottom: 6 }}>Reason *</label>
+                <input value={reportReason} onChange={e => setReportReason(e.target.value)} placeholder="e.g. Scam, fake listing, inappropriate content" className="input" style={{ marginBottom: 14 }} maxLength={255} required />
+
+                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--forest)", marginBottom: 6 }}>Additional details (optional)</label>
+                <textarea value={reportDetails} onChange={e => setReportDetails(e.target.value)} rows={3} maxLength={2000} className="input" style={{ resize: "none", marginBottom: 14 }} placeholder="Anything else that would help us look into this" />
+
+                {/* Honeypot — invisible to real users, styled off-screen
+                    rather than display:none (some bots skip hidden fields
+                    but still fill visually-offscreen ones, so this one's
+                    positioned off-canvas instead). Any value here means
+                    it was filled by an automated script, not a person. */}
+                <input
+                  type="text"
+                  name="website"
+                  value={reportHoneypot}
+                  onChange={e => setReportHoneypot(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+                  aria-hidden="true"
+                />
+
+                {reportError && <p style={{ fontSize: 12.5, color: "#C53030", marginBottom: 14 }}>{reportError}</p>}
+
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button type="button" onClick={() => setShowReport(false)} className="btn btn-outline" style={{ flex: 1, justifyContent: "center" }}>Cancel</button>
+                  <button type="submit" disabled={reportSubmitting} className="btn btn-primary" style={{ flex: 1, justifyContent: "center" }}>
+                    {reportSubmitting ? "Submitting…" : "Submit report"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

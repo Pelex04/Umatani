@@ -136,3 +136,14 @@ export interface PlatformStats {
   open_reports: number;
   open_tickets: number;
 }
+
+export interface SupportTicket {
+  id: string;
+  ticket_type: "support" | "feature_request";
+  subject: string;
+  description: string;
+  status: "open" | "in_progress" | "resolved" | "closed";
+  admin_response: string | null;
+  created_at: string;
+  updated_at: string;
+}

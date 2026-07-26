@@ -118,6 +118,14 @@ export default function DashboardPage() {
           <StatusBanner tone="red" title="Account suspended" body="Contact support if you believe this is a mistake." />
         )}
 
+        {biz && biz.status === "pending" && (
+          <StatusBanner tone="indigo" title="Listing awaiting approval" body="Your business profile is under admin review and won't appear in search results until it's approved. This is normal for new listings." />
+        )}
+
+        {biz && biz.status === "suspended" && (
+          <StatusBanner tone="red" title="Listing suspended" body="Your business profile has been hidden from search. Contact support if you believe this is a mistake." />
+        )}
+
         {/* No business yet */}
         {!biz && user.status === "verified" && (
           <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: "56px 32px", textAlign: "center" }}>

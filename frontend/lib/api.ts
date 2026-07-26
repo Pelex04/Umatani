@@ -199,10 +199,20 @@ export const api = {
   },
 
   support: {
-    createReport: (data: object) =>
-      request("/support/reports", { method: "POST", body: JSON.stringify(data) }),
-    createTicket: (data: object) =>
+    // auth=true here doesn't make sign-in required — the request()
+    // helper only attaches an Authorization header when a token actually
+    // exists, it never blocks the request for lacking one. Passing true
+    // means: if the person happens to be signed in, the backend's
+    // optional_bearer picks up their token and links the report to their
+    // account (useful for admin follow-up); if not, it's omitted and the
+    // report still goes through anonymously, exactly as the backend
+    // (deliberately public, no-auth-required) supports.
+    createReport: (data: { report_type: string; target_id: string; reason: string; details?: string }) =>
+      request("/support/reports", { method: "POST", body: JSON.stringify(data) }, true),
+    createTicket: (data: { ticket_type: string; subject: string; description: string }) =>
       request("/support/tickets", { method: "POST", body: JSON.stringify(data) }, true),
+    myTickets: () =>
+      request<import("@/types").SupportTicket[]>("/support/tickets/mine", {}, true),
   },
 
   admin: {

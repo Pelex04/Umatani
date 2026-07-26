@@ -59,11 +59,17 @@ class BusinessRepository(BaseRepository[Business]):
         """
         stmt = select(Business).where(Business.status == status)
 
+        keyword = keyword.strip() if keyword else None
         if keyword:
+            # Escape ILIKE's own wildcard characters so a literal % or _
+            # in someone's search term (or a business name containing
+            # one) is matched literally instead of acting as a wildcard.
+            escaped = keyword.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            pattern = f"%{escaped}%"
             stmt = stmt.where(
                 or_(
-                    Business.name.ilike(f"%{keyword}%"),
-                    Business.description.ilike(f"%{keyword}%"),
+                    Business.name.ilike(pattern, escape="\\"),
+                    Business.description.ilike(pattern, escape="\\"),
                 )
             )
         if category_id:
