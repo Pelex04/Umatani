@@ -35,6 +35,7 @@ export default function BusinessProfile() {
   const [hover,    setHover]    = useState(0);
   const [comment,  setComment]  = useState("");
   const [service,  setService]  = useState("");
+  const [reviewPhotos, setReviewPhotos] = useState<{ file: File; preview: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [revError, setRevError] = useState("");
   const [revDone,  setRevDone]  = useState(false);
@@ -75,11 +76,27 @@ export default function BusinessProfile() {
     if (comment.length < 10)  { setRevError("Comment must be at least 10 characters."); return; }
     setSubmitting(true); setRevError("");
     try {
-      await api.reviews.create({ business_id: biz.id, rating, comment, service_received: service || null, photo_storage_keys: [] });
-      setRevDone(true); setRating(0); setComment(""); setService("");
+      const photoKeys = await Promise.all(
+        reviewPhotos.map(async p => (await api.media.upload(p.file, "review_photo")).storage_key)
+      );
+      await api.reviews.create({ business_id: biz.id, rating, comment, service_received: service || null, photo_storage_keys: photoKeys });
+      reviewPhotos.forEach(p => URL.revokeObjectURL(p.preview));
+      setRevDone(true); setRating(0); setComment(""); setService(""); setReviewPhotos([]);
       loadReviews(0);
     } catch (e: any) { setRevError(e.message ?? "Could not submit review."); }
     finally { setSubmitting(false); }
+  };
+
+  const addReviewPhoto = (file: File) => {
+    if (reviewPhotos.length >= 5) return;
+    setReviewPhotos(prev => [...prev, { file, preview: URL.createObjectURL(file) }]);
+  };
+
+  const removeReviewPhoto = (index: number) => {
+    setReviewPhotos(prev => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const submitReport = async (e: React.FormEvent) => {
@@ -266,6 +283,29 @@ export default function BusinessProfile() {
                         <span style={{ fontSize: 11, color: "var(--ink-faint)" }}>{comment.length}/2000</span>
                       </div>
                     </div>
+
+                    <div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: reviewPhotos.length > 0 ? 8 : 0 }}>
+                        {reviewPhotos.map((p, i) => (
+                          <div key={p.preview} style={{ position: "relative", width: 56, height: 56, borderRadius: 2, overflow: "hidden", border: "1px solid var(--border)" }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={p.preview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            <button type="button" onClick={() => removeReviewPhoto(i)} style={{ position: "absolute", top: 2, right: 2, width: 16, height: 16, borderRadius: 2, background: "rgba(33,4,16,0.7)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      {reviewPhotos.length < 5 && (
+                        <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 500, color: "var(--forest)", cursor: "pointer" }}>
+                          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 11V3M8 3L5 6M8 3l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M2.5 11v1.5A1.5 1.5 0 004 14h8a1.5 1.5 0 001.5-1.5V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                          Add photo{reviewPhotos.length > 0 ? ` (${reviewPhotos.length}/5)` : ""}
+                          <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
+                            onChange={e => { const f = e.target.files?.[0]; if (f) addReviewPhoto(f); e.target.value = ""; }} />
+                        </label>
+                      )}
+                    </div>
+
                     {revError && <p style={{ fontSize: 12.5, color: "#C53030" }}>{revError}</p>}
                     <button type="submit" disabled={submitting} className="btn btn-primary" style={{ alignSelf: "flex-start", fontSize: 13 }}>
                       {submitting ? "Submitting…" : "Submit review"}
@@ -291,6 +331,15 @@ export default function BusinessProfile() {
                             <span style={{ fontSize: 11.5, color: "var(--ink-faint)", flexShrink: 0 }}>{timeAgo(rev.created_at)}</span>
                           </div>
                           <p style={{ fontSize: 13.5, color: "var(--ink-muted)", lineHeight: 1.65, whiteSpace: "pre-line" }}>{rev.comment}</p>
+                          {rev.photos.length > 0 && (
+                            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+                              {rev.photos.map(p => (
+                                <a key={p.id} href={p.display_url} target="_blank" rel="noopener noreferrer" style={{ width: 56, height: 56, borderRadius: 2, overflow: "hidden", border: "1px solid var(--border)", position: "relative", display: "block" }}>
+                                  <Image src={p.display_url} alt="" fill sizes="56px" style={{ objectFit: "cover" }} />
+                                </a>
+                              ))}
+                            </div>
+                          )}
                           {rev.reply && (
                             <div style={{ marginTop: 12, background: "var(--forest-50)", borderRadius: 2, padding: "10px 12px", borderLeft: "3px solid var(--forest-400)" }}>
                               <p style={{ fontSize: 11.5, fontWeight: 600, color: "var(--forest)", marginBottom: 4 }}>{biz.name} replied</p>

@@ -11,7 +11,7 @@ import { Stars } from "@/components/ui/Stars";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { Business, Category } from "@/types";
 
-type Tab = "overview" | "profile" | "services";
+type Tab = "overview" | "profile" | "services" | "portfolio";
 
 export default function DashboardPage() {
   const { user, loading: authLoading, refresh } = useAuth();
@@ -168,7 +168,7 @@ export default function DashboardPage() {
             {/* Tab panel */}
             <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
               <div style={{ display: "flex", borderBottom: "1px solid var(--border)", overflowX: "auto" }} className="scrollbar-hide">
-                {(["overview","profile","services"] as Tab[]).map(t => (
+                {(["overview","profile","services","portfolio"] as Tab[]).map(t => (
                   <button key={t} onClick={() => setTab(t)} style={{
                     padding: "14px 20px", fontSize: 13.5, fontWeight: 500, textTransform: "capitalize",
                     background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-sans)",
@@ -287,6 +287,9 @@ export default function DashboardPage() {
                     }
                   </div>
                 )}
+                {tab === "portfolio" && (
+                  <PortfolioManager biz={biz} onUpdated={b => setBiz(b)} />
+                )}
               </div>
             </div>
           </>
@@ -370,6 +373,95 @@ function BusinessImageUpload({ biz, onUpdated }: { biz: Business; onUpdated: (b:
 
       {error && <p style={{ fontSize: 12, color: "#C53030", marginTop: 6 }}>{error}</p>}
       <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 4 }}>JPG, PNG, or WebP.</p>
+    </div>
+  );
+}
+
+function PortfolioManager({ biz, onUpdated }: { biz: Business; onUpdated: (b: Business) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [caption, setCaption] = useState("");
+  const [error, setError] = useState("");
+
+  const images = biz.portfolio_items.filter(p => p.item_type === "image");
+
+  const handleUpload = async (file: File) => {
+    setUploading(true); setError("");
+    try {
+      const { storage_key } = await api.media.upload(file, "portfolio_image");
+      const item = await api.businesses.addPortfolioItem({
+        item_type: "image",
+        storage_key_or_url: storage_key,
+        caption: caption.trim() || undefined,
+        display_order: images.length,
+      });
+      onUpdated({ ...biz, portfolio_items: [...biz.portfolio_items, item] });
+      setCaption("");
+    } catch (err: any) {
+      setError(err.message ?? "Could not upload photo. Try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemove = async (id: string) => {
+    setRemovingId(id); setError("");
+    try {
+      await api.businesses.removePortfolioItem(id);
+      onUpdated({ ...biz, portfolio_items: biz.portfolio_items.filter(p => p.id !== id) });
+    } catch (err: any) {
+      setError(err.message ?? "Could not remove photo.");
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.6, marginBottom: 20, maxWidth: 480 }}>
+        Show off actual work, not just a logo — photos of cakes you've baked, designs you've shipped, events you've shot. This is often what actually convinces someone to hire you.
+      </p>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+        <input value={caption} onChange={e => setCaption(e.target.value)} placeholder="Caption (optional)" className="input" style={{ maxWidth: 240 }} maxLength={500} />
+        <UploadTrigger
+          label={uploading ? "Uploading…" : "Add photo"}
+          onFile={handleUpload}
+          disabled={uploading}
+        />
+      </div>
+
+      {error && <p style={{ fontSize: 12, color: "#C53030", marginBottom: 14 }}>{error}</p>}
+
+      {images.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "40px 0", color: "var(--ink-faint)" }}>
+          <p style={{ fontFamily: "var(--font-serif)", fontSize: 18, color: "var(--forest)", marginBottom: 6 }}>No photos yet</p>
+          <p style={{ fontSize: 13.5 }}>Add a few photos of your actual work above.</p>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
+          {images.map(item => (
+            <div key={item.id} style={{ position: "relative", aspectRatio: "1", borderRadius: 2, overflow: "hidden", border: "1px solid var(--border)", background: "var(--cream)" }}>
+              <Image src={item.display_url} alt={item.caption ?? ""} fill sizes="200px" style={{ objectFit: "cover" }} />
+              <button onClick={() => handleRemove(item.id)} disabled={removingId === item.id}
+                style={{
+                  position: "absolute", top: 6, right: 6, width: 24, height: 24, borderRadius: 2,
+                  background: "rgba(33,4,16,0.7)", border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  opacity: removingId === item.id ? 0.5 : 1,
+                }}
+                aria-label="Remove photo">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </button>
+              {item.caption && (
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "linear-gradient(transparent, rgba(33,4,16,0.75))", padding: "16px 8px 6px", fontSize: 10.5, color: "white" }}>
+                  {item.caption}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

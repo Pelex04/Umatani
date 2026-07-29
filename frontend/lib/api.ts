@@ -181,6 +181,12 @@ export const api = {
       request<import("@/types").Business>(
         `/businesses/me/cover?storage_key=${encodeURIComponent(storageKey)}`, { method: "PATCH" }, true
       ),
+    addPortfolioItem: (data: { item_type: string; storage_key_or_url: string; caption?: string; display_order?: number }) =>
+      request<import("@/types").PortfolioItem>(
+        "/businesses/me/portfolio", { method: "POST", body: JSON.stringify(data) }, true
+      ),
+    removePortfolioItem: (itemId: string) =>
+      request(`/businesses/me/portfolio/${itemId}`, { method: "DELETE" }, true),
   },
 
   reviews: {

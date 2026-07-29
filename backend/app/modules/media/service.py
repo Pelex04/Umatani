@@ -22,7 +22,7 @@ business cards and listings without a signed-URL round trip per image.
 import uuid
 
 from app.core.config import get_settings
-from app.modules.media.storage import StorageBackend, StorageError
+from app.modules.media.storage import StorageBackend, StorageError, get_storage_backend
 from app.modules.media.validation import (
     UploadPurpose,
     UploadValidationError,
@@ -125,3 +125,25 @@ class MediaService:
         if purpose in _PRIVATE_PURPOSES:
             raise MediaError(f"{purpose.value} objects are never public")
         return self.storage.get_public_url(storage_key, bucket=_bucket_for(purpose))
+
+
+def public_url_or_none(storage_key: str | None, *, purpose: UploadPurpose) -> str | None:
+    """
+    Builds a public media URL from a stored key, for use in response
+    schemas' computed fields. Safe to call even when the storage backend
+    can't actually be constructed (e.g. Supabase env vars unset in a
+    local/test environment) — falls back to None rather than raising,
+    since a missing image shouldn't break the whole response.
+
+    Shared across every module that needs to turn a stored key into a
+    display URL (businesses, reviews, ...) rather than each one
+    duplicating the same try/except, so a new media type doesn't
+    accidentally expose a raw storage key just because nobody thought to
+    copy this helper into its schema file too.
+    """
+    if storage_key is None:
+        return None
+    try:
+        return MediaService(get_storage_backend()).get_public_url(storage_key, purpose=purpose)
+    except Exception:
+        return None

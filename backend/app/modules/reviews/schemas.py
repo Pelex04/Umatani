@@ -1,7 +1,10 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
+
+from app.modules.media.service import public_url_or_none
+from app.modules.media.validation import UploadPurpose
 
 
 class ReviewCreateRequest(BaseModel):
@@ -17,9 +20,22 @@ class ReviewReplyRequest(BaseModel):
 
 
 class ReviewPhotoResponse(BaseModel):
+    """
+    storage_key is excluded from serialization — same reasoning as
+    business logo/cover and portfolio items: the frontend needs a URL it
+    can actually put in an <img> src, not a raw key it has no way to
+    turn into one itself. Review photos live in the public bucket (no
+    privacy concern, unlike student IDs), so a plain computed URL is
+    fine here, no signed-URL round trip needed.
+    """
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
-    storage_key: str
+    storage_key: str = Field(exclude=True)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def display_url(self) -> str | None:
+        return public_url_or_none(self.storage_key, purpose=UploadPurpose.REVIEW_PHOTO)
 
 
 class ReviewReplyResponse(BaseModel):

@@ -46,7 +46,7 @@ export interface Review {
   comment: string;
   service_received: string | null;
   created_at: string;
-  photos: { id: string; storage_key: string }[];
+  photos: { id: string; display_url: string }[];
   reply: ReviewReply | null;
 }
 
