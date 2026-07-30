@@ -31,6 +31,9 @@ export default function DashboardPage() {
   const [email,       setEmail]       = useState("");
   const [website,     setWebsite]     = useState("");
   const [instagram,   setInstagram]   = useState("");
+  const [twitter,     setTwitter]     = useState("");
+  const [facebook,    setFacebook]    = useState("");
+  const [tiktok,      setTiktok]      = useState("");
   const [available,   setAvailable]   = useState(true);
   const [showCreate,  setShowCreate]  = useState(false);
 
@@ -45,6 +48,7 @@ export default function DashboardPage() {
           setCategoryId(b.category_id); setWhatsapp(b.whatsapp ?? "");
           setPhone(b.phone ?? ""); setEmail(b.contact_email ?? "");
           setWebsite(b.website ?? ""); setInstagram(b.instagram ?? "");
+          setTwitter(b.twitter ?? ""); setFacebook(b.facebook ?? ""); setTiktok(b.tiktok ?? "");
           setAvailable(b.is_available);
         }
       }).finally(() => setLoading(false));
@@ -53,7 +57,7 @@ export default function DashboardPage() {
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault(); setSaving(true); setError(""); setSaved(false);
     try {
-      const updated = await api.businesses.update({ name, description, category_id: categoryId, whatsapp: whatsapp || null, phone: phone || null, contact_email: email || null, website: website || null, instagram: instagram || null, is_available: available });
+      const updated = await api.businesses.update({ name, description, category_id: categoryId, whatsapp: whatsapp || null, phone: phone || null, contact_email: email || null, website: website || null, instagram: instagram || null, twitter: twitter || null, facebook: facebook || null, tiktok: tiktok || null, is_available: available });
       setBiz(updated as any); setSaved(true); setTimeout(() => setSaved(false), 3000);
     } catch (err: any) { setError(err.message ?? "Could not save."); }
     finally { setSaving(false); }
@@ -241,7 +245,7 @@ export default function DashboardPage() {
                       <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="input" style={{ resize: "vertical" }} required />
                     </div>
                     <div className="dash-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                      {([["WhatsApp", whatsapp, setWhatsapp, "+265991234567"], ["Phone", phone, setPhone, "+265..."], ["Contact email", email, setEmail, ""], ["Website", website, setWebsite, "https://..."], ["Instagram", instagram, setInstagram, "@username"]] as [string, string, (v: string) => void, string][]).map(([l, v, fn, ph]) => (
+                      {([["WhatsApp", whatsapp, setWhatsapp, "+265991234567"], ["Phone", phone, setPhone, "+265..."], ["Contact email", email, setEmail, ""], ["Website", website, setWebsite, "https://..."], ["Instagram", instagram, setInstagram, "@username"], ["Twitter / X", twitter, setTwitter, "@username"], ["Facebook", facebook, setFacebook, "facebook.com/yourpage"], ["TikTok", tiktok, setTiktok, "@username"]] as [string, string, (v: string) => void, string][]).map(([l, v, fn, ph]) => (
                         <div key={l}>
                           <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 6 }}>{l}</label>
                           <input value={v} onChange={e => fn(e.target.value)} placeholder={ph} className="input" />

@@ -19,6 +19,21 @@ const PALETTES = [
 const pal = (name: string) => PALETTES[name.charCodeAt(0) % PALETTES.length];
 const initials = (name: string) => name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 
+// These fields are free text on the backend (no format enforced), so an
+// owner might type "@handle" or a full profile URL either way. Build a
+// working link regardless: pass full URLs through untouched, otherwise
+// treat it as a handle and prepend the platform's base URL.
+const SOCIAL_BASE: Record<string, string> = {
+  instagram: "https://instagram.com/",
+  twitter: "https://x.com/",
+  facebook: "https://facebook.com/",
+  tiktok: "https://tiktok.com/@",
+};
+const socialUrl = (platform: keyof typeof SOCIAL_BASE, value: string) => {
+  if (/^https?:\/\//i.test(value)) return value;
+  return SOCIAL_BASE[platform] + value.replace(/^@/, "");
+};
+
 export default function BusinessProfileClient() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
@@ -256,6 +271,43 @@ export default function BusinessProfileClient() {
                   </a>
                 )}
               </div>
+
+              {(biz.instagram || biz.twitter || biz.facebook || biz.tiktok) && (
+                <div style={{ display: "flex", gap: 8, marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border)" }}>
+                  {biz.instagram && (
+                    <a href={socialUrl("instagram", biz.instagram)} target="_blank" rel="noopener" aria-label="Instagram"
+                      style={{ width: 32, height: 32, borderRadius: 2, border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-muted)", transition: "color 0.15s, border-color 0.15s" }}
+                      onMouseEnter={e => { e.currentTarget.style.color = "var(--forest)"; e.currentTarget.style.borderColor = "var(--forest-400)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = "var(--ink-muted)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
+                      <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><rect x="2.5" y="2.5" width="15" height="15" rx="4" stroke="currentColor" strokeWidth="1.5"/><circle cx="10" cy="10" r="3.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="14.2" cy="5.8" r="1" fill="currentColor"/></svg>
+                    </a>
+                  )}
+                  {biz.twitter && (
+                    <a href={socialUrl("twitter", biz.twitter)} target="_blank" rel="noopener" aria-label="Twitter / X"
+                      style={{ width: 32, height: 32, borderRadius: 2, border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-muted)", transition: "color 0.15s, border-color 0.15s" }}
+                      onMouseEnter={e => { e.currentTarget.style.color = "var(--forest)"; e.currentTarget.style.borderColor = "var(--forest-400)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = "var(--ink-muted)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
+                      <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M2 2l7 8.5L2.4 18h2l6-6.9 4.6 6.9h3l-7.3-9L17.6 2h-2l-5.6 6.4L4.9 2H2z" fill="currentColor"/></svg>
+                    </a>
+                  )}
+                  {biz.facebook && (
+                    <a href={socialUrl("facebook", biz.facebook)} target="_blank" rel="noopener" aria-label="Facebook"
+                      style={{ width: 32, height: 32, borderRadius: 2, border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-muted)", transition: "color 0.15s, border-color 0.15s" }}
+                      onMouseEnter={e => { e.currentTarget.style.color = "var(--forest)"; e.currentTarget.style.borderColor = "var(--forest-400)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = "var(--ink-muted)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
+                      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M12.5 3h-2A3.5 3.5 0 007 6.5V9H5v3h2v6h3v-6h2.5l.5-3H10V6.75c0-.69.56-.75 1-.75h1.5V3z" fill="currentColor"/></svg>
+                    </a>
+                  )}
+                  {biz.tiktok && (
+                    <a href={socialUrl("tiktok", biz.tiktok)} target="_blank" rel="noopener" aria-label="TikTok"
+                      style={{ width: 32, height: 32, borderRadius: 2, border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-muted)", transition: "color 0.15s, border-color 0.15s" }}
+                      onMouseEnter={e => { e.currentTarget.style.color = "var(--forest)"; e.currentTarget.style.borderColor = "var(--forest-400)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = "var(--ink-muted)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
+                      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M14.5 2.5c.35 2 1.6 3.3 3.5 3.5v2.6a6.3 6.3 0 01-3.5-1.1v5.6a4.6 4.6 0 11-4-4.55v2.7a2 2 0 102.4 1.95V2.5h1.6z" fill="currentColor"/></svg>
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
 
             <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 16 }}>
