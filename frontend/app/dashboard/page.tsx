@@ -263,26 +263,7 @@ export default function DashboardPage() {
 
                 {/* Services */}
                 {tab === "services" && (
-                  <div>
-                    {biz.services.length === 0
-                      ? <div style={{ textAlign: "center", padding: "40px 0", color: "var(--ink-faint)" }}>
-                          <p style={{ fontFamily: "var(--font-serif)", fontSize: 18, color: "var(--forest)", marginBottom: 6 }}>No services listed</p>
-                          <p style={{ fontSize: 13.5, marginBottom: 16 }}>Add services when editing your profile.</p>
-                          <button onClick={() => setTab("profile")} className="btn btn-outline" style={{ fontSize: 13 }}>Go to profile</button>
-                        </div>
-                      : <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                          {biz.services.map(svc => (
-                            <div key={svc.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "var(--cream)", border: "1px solid var(--border)", borderRadius: 2 }}>
-                              <div>
-                                <p style={{ fontWeight: 500, fontSize: 13.5, color: "var(--forest)" }}>{svc.name}</p>
-                                {svc.description && <p style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 2 }}>{svc.description}</p>}
-                              </div>
-                              {svc.price_range && <span style={{ fontSize: 12, fontWeight: 500, background: "var(--gold-light)", color: "var(--gold-dark)", padding: "4px 10px", borderRadius: 2, flexShrink: 0, marginLeft: 12 }}>{svc.price_range}</span>}
-                            </div>
-                          ))}
-                        </div>
-                    }
-                  </div>
+                  <ServicesManager biz={biz} onUpdated={b => setBiz(b)} />
                 )}
                 {tab === "portfolio" && (
                   <PortfolioManager biz={biz} onUpdated={b => setBiz(b)} />
@@ -370,6 +351,104 @@ function BusinessImageUpload({ biz, onUpdated }: { biz: Business; onUpdated: (b:
 
       {error && <p style={{ fontSize: 12, color: "#C53030", marginTop: 6 }}>{error}</p>}
       <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 4 }}>JPG, PNG, or WebP.</p>
+    </div>
+  );
+}
+
+function ServicesManager({ biz, onUpdated }: { biz: Business; onUpdated: (b: Business) => void }) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [priceRange, setPriceRange] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  // The backend has no per-service create/delete endpoint — PATCH
+  // /businesses/me replaces the *entire* services array whenever
+  // `services` is present in the payload. So every add/remove here
+  // sends the full current list (existing services, unchanged, plus
+  // the one addition or minus the one removal) rather than a single
+  // item — the "add" form isn't creating one row, it's re-saving the
+  // whole list with one more entry in it.
+  const toPayload = (services: typeof biz.services) =>
+    services.map((s, i) => ({
+      name: s.name, description: s.description, price_range: s.price_range, display_order: i,
+    }));
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) { setError("Service name is required."); return; }
+    setSaving(true); setError("");
+    try {
+      const payload = [
+        ...toPayload(biz.services),
+        { name: name.trim(), description: description.trim() || null, price_range: priceRange.trim() || null, display_order: biz.services.length },
+      ];
+      const updated = await api.businesses.update({ services: payload });
+      onUpdated(updated as any);
+      setName(""); setDescription(""); setPriceRange("");
+    } catch (err: any) {
+      setError(err.message ?? "Could not add service.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRemove = async (id: string) => {
+    setRemovingId(id); setError("");
+    try {
+      const updated = await api.businesses.update({ services: toPayload(biz.services.filter(s => s.id !== id)) });
+      onUpdated(updated as any);
+    } catch (err: any) {
+      setError(err.message ?? "Could not remove service.");
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  const atLimit = biz.services.length >= 20;
+
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.6, marginBottom: 20, maxWidth: 480 }}>
+        List what you actually offer — visitors browse and compare businesses by these on your public profile. A price range helps set expectations before someone reaches out.
+      </p>
+
+      <form onSubmit={handleAdd} className="dash-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 8, marginBottom: 8, alignItems: "start" }}>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="Service name" className="input" maxLength={255} disabled={atLimit} />
+        <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Description (optional)" className="input" maxLength={500} disabled={atLimit} />
+        <input value={priceRange} onChange={e => setPriceRange(e.target.value)} placeholder="Price range (optional)" className="input" maxLength={100} disabled={atLimit} />
+        <button type="submit" disabled={saving || atLimit} className="btn btn-primary" style={{ fontSize: 13, whiteSpace: "nowrap" }}>
+          {saving ? "Adding…" : "Add"}
+        </button>
+      </form>
+
+      {atLimit && <p style={{ fontSize: 12, color: "var(--ink-faint)", marginBottom: 14 }}>You've reached the 20-service limit.</p>}
+      {error && <p style={{ fontSize: 12, color: "#C53030", marginBottom: 14 }}>{error}</p>}
+
+      {biz.services.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "40px 0", color: "var(--ink-faint)" }}>
+          <p style={{ fontFamily: "var(--font-serif)", fontSize: 18, color: "var(--forest)", marginBottom: 6 }}>No services listed</p>
+          <p style={{ fontSize: 13.5 }}>Add your first service above — it'll show up on your public profile right away.</p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {biz.services.map(svc => (
+            <div key={svc.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "var(--cream)", border: "1px solid var(--border)", borderRadius: 2, gap: 12 }}>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontWeight: 500, fontSize: 13.5, color: "var(--forest)" }}>{svc.name}</p>
+                {svc.description && <p style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 2 }}>{svc.description}</p>}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+                {svc.price_range && <span style={{ fontSize: 12, fontWeight: 500, background: "var(--gold-light)", color: "var(--gold-dark)", padding: "4px 10px", borderRadius: 2 }}>{svc.price_range}</span>}
+                <button onClick={() => handleRemove(svc.id)} disabled={removingId === svc.id} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12.5, color: "#C53030", fontWeight: 500 }}>
+                  {removingId === svc.id ? "…" : "Remove"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
