@@ -241,6 +241,8 @@ export const api = {
       ),
     schools: {
       list: () => request("/admin/schools", {}, true),
+      create: (data: { name: string; country: string; city: string; email_domain: string; logo_url?: string | null }) =>
+        request("/admin/schools", { method: "POST", body: JSON.stringify(data) }, true),
       approve: (id: string) =>
         request(`/admin/schools/${id}/approve`, { method: "PATCH" }, true),
       suspend: (id: string) =>

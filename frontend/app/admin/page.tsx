@@ -34,6 +34,9 @@ export default function AdminDashboard() {
   const [newCatDesc, setNewCatDesc] = useState("");
   const [creatingCat, setCreatingCat] = useState(false);
   const [catError, setCatError] = useState<string | null>(null);
+  const [newSchool, setNewSchool] = useState({ name: "", country: "", city: "", email_domain: "" });
+  const [creatingSchool, setCreatingSchool] = useState(false);
+  const [schoolError, setSchoolError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== "admin")) { router.push("/"); return; }
@@ -82,6 +85,23 @@ export default function AdminDashboard() {
       setCatError(err.message ?? "Could not create category.");
     } finally {
       setCreatingCat(false);
+    }
+  };
+
+  const createSchool = async () => {
+    const { name, country, city, email_domain } = newSchool;
+    if (!name.trim() || !country.trim() || !city.trim() || !email_domain.trim()) return;
+    setCreatingSchool(true); setSchoolError(null);
+    try {
+      await api.admin.schools.create({
+        name: name.trim(), country: country.trim(), city: city.trim(), email_domain: email_domain.trim(),
+      });
+      setNewSchool({ name: "", country: "", city: "", email_domain: "" });
+      await loadTab("schools");
+    } catch (err: any) {
+      setSchoolError(err.message ?? "Could not add school.");
+    } finally {
+      setCreatingSchool(false);
     }
   };
 
@@ -241,7 +261,33 @@ export default function AdminDashboard() {
 
         {/* Schools */}
         {tab === "schools" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 16 }}>
+              <p style={{ fontSize: 12.5, fontWeight: 600, color: "var(--forest)", marginBottom: 10 }}>Add school</p>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <input value={newSchool.name} onChange={e => setNewSchool(s => ({ ...s, name: e.target.value }))} placeholder="School name"
+                  style={{ flex: "2 1 220px", fontSize: 13, padding: "8px 12px", border: "1px solid var(--border-med)", borderRadius: 2 }} />
+                <input value={newSchool.city} onChange={e => setNewSchool(s => ({ ...s, city: e.target.value }))} placeholder="City"
+                  style={{ flex: "1 1 130px", fontSize: 13, padding: "8px 12px", border: "1px solid var(--border-med)", borderRadius: 2 }} />
+                <input value={newSchool.country} onChange={e => setNewSchool(s => ({ ...s, country: e.target.value }))} placeholder="Country"
+                  style={{ flex: "1 1 130px", fontSize: 13, padding: "8px 12px", border: "1px solid var(--border-med)", borderRadius: 2 }} />
+                <input value={newSchool.email_domain} onChange={e => setNewSchool(s => ({ ...s, email_domain: e.target.value }))} placeholder="Email domain, e.g. mubas.ac.mw"
+                  style={{ flex: "1 1 200px", fontSize: 13, padding: "8px 12px", border: "1px solid var(--border-med)", borderRadius: 2 }} />
+                <button onClick={createSchool}
+                  disabled={creatingSchool || !newSchool.name.trim() || !newSchool.country.trim() || !newSchool.city.trim() || !newSchool.email_domain.trim()}
+                  style={{ fontSize: 12.5, fontWeight: 600, background: "var(--forest)", color: "var(--cream)", border: "none", borderRadius: 2, padding: "8px 18px", cursor: "pointer" }}>
+                  {creatingSchool ? "Adding…" : "Add"}
+                </button>
+              </div>
+              {schoolError && <p style={{ fontSize: 12, color: "#C53030", marginTop: 8 }}>{schoolError}</p>}
+              <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 8 }}>
+                Every student registers with their school email, matched by this domain — so it must be
+                the exact domain after the @ (e.g. "mubas.ac.mw", not "@mubas.ac.mw" or a full email).
+                New schools start Pending and won't appear at registration or in Discover until you Approve them below —
+                this stops anyone from self-registering a fake "school" with a domain they control.
+              </p>
+            </div>
+
             {loading ? <TableSkeleton /> : rows.map((s: any) => (
               <div key={s.id} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
                 <div style={{ minWidth: 0 }}>

@@ -30,42 +30,42 @@ export function BusinessCard({ business, school, category }: Props) {
       <article className="card f-card" style={{
         overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", height: "100%", padding: 0,
       }}>
-        {/* Image band — grayscale, reveals to full color on hover (the
-            signature card interaction: meeting the real person behind
-            the trade). Falls back to a flat initials mark, no gradient,
-            when there's no photo yet. */}
+        {/* Image band. Business logos are small square marks, not wide
+            hero photos — the list endpoint doesn't even return a cover
+            image, only logo_url. So a logo is shown the same way the
+            initials fallback is: a small centered square badge on a
+            flat background, never stretched full-bleed across the
+            band (that crops/zooms square art into something illegible,
+            especially for a portrait or off-center icon). */}
         <div style={{
           position: "relative", height: 108, flexShrink: 0,
-          background: business.logo_url ? "var(--cream-dark)" : pal.bg,
+          background: pal.bg, display: "flex", alignItems: "center", justifyContent: "center",
         }}>
-          {business.logo_url ? (
-            <Image
-              className="f-photo-img"
-              src={business.logo_url}
-              alt=""
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              style={{ objectFit: "cover" }}
-              // Grid cards are almost always below the initial viewport
-              // fold — default lazy loading means the browser doesn't
-              // fetch these until they're about to scroll into view,
-              // instead of downloading every card's image up front.
-            />
-          ) : (
-            <div style={{
-              position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: 2,
-                background: "var(--white)", color: pal.text,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "var(--font-serif)", fontWeight: 800, fontSize: 18,
-                letterSpacing: "-0.01em", border: "1px solid var(--border)",
-              }}>
-                {initials(business.name)}
-              </div>
-            </div>
-          )}
+          <div style={{
+            width: 56, height: 56, borderRadius: 2,
+            background: "var(--white)", color: pal.text,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontFamily: "var(--font-serif)", fontWeight: 800, fontSize: 18,
+            letterSpacing: "-0.01em", border: "1px solid var(--border)",
+            overflow: "hidden", position: "relative",
+          }}>
+            {business.logo_url ? (
+              <Image
+                className="f-photo-img"
+                src={business.logo_url}
+                alt=""
+                fill
+                sizes="56px"
+                style={{ objectFit: "cover" }}
+                // Grid cards are almost always below the initial viewport
+                // fold — default lazy loading means the browser doesn't
+                // fetch these until they're about to scroll into view,
+                // instead of downloading every card's image up front.
+              />
+            ) : (
+              initials(business.name)
+            )}
+          </div>
 
           {/* Availability status, floated over the image band — plain
               text tag, no dot/glow */}
