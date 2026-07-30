@@ -14,7 +14,6 @@ function DiscoverInner() {
   const [keyword,    setKeyword]    = useState(sp.get("keyword") ?? "");
   const [categoryId, setCategoryId] = useState(sp.get("category_id") ?? "");
   const [schoolId,   setSchoolId]   = useState(sp.get("school_id") ?? "");
-  const [minRating,  setMinRating]  = useState(sp.get("min_rating") ?? "");
   const [showFilter, setShowFilter] = useState(false);
 
   const { categories, schools } = useReferenceData();
@@ -49,7 +48,6 @@ function DiscoverInner() {
         keyword: (keywordOverride ?? debouncedKeyword) || undefined,
         category_id: categoryId || undefined,
         school_id: schoolId || undefined,
-        min_rating: minRating ? Number(minRating) : undefined,
         offset: off, limit: LIMIT,
       });
       if (thisRequestId !== requestIdRef.current) return; // a newer search superseded this one
@@ -60,7 +58,7 @@ function DiscoverInner() {
     } finally {
       if (thisRequestId === requestIdRef.current) setLoading(false);
     }
-  }, [debouncedKeyword, categoryId, schoolId, minRating]);
+  }, [debouncedKeyword, categoryId, schoolId]);
 
   useEffect(() => { doSearch(0); }, [doSearch]);
 
@@ -72,7 +70,6 @@ function DiscoverInner() {
   const activeFilters = [
     categoryId && catMap[categoryId]?.name,
     schoolId   && schoolMap[schoolId]?.name,
-    minRating  && `${minRating}+ stars`,
   ].filter(Boolean) as string[];
 
   const S = { /* label */ L: { fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "var(--ink-muted)", display: "block", marginBottom: 6 } };
@@ -123,7 +120,7 @@ function DiscoverInner() {
             <div className="anim-in discover-filter-grid" style={{
               marginTop: 14, paddingTop: 14,
               borderTop: "1px solid rgba(67,8,31,0.07)",
-              display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16,
+              display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16,
             }}>
               <div>
                 <span style={S.L}>Category</span>
@@ -139,14 +136,6 @@ function DiscoverInner() {
                   {schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
-              <div>
-                <span style={S.L}>Min rating</span>
-                <select value={minRating} onChange={e => setMinRating(e.target.value)} className="input" style={{ fontSize: 13.5 }}>
-                  <option value="">Any rating</option>
-                  <option value="4">4+ stars</option>
-                  <option value="3">3+ stars</option>
-                </select>
-              </div>
             </div>
           )}
 
@@ -158,13 +147,7 @@ function DiscoverInner() {
                   <button onClick={() => setCategoryId("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1, color: "var(--forest-600)", fontSize: 14 }}>×</button>
                 </span>
               )}
-              {minRating && (
-                <span className="badge badge-gold" style={{ gap: 6 }}>
-                  {minRating}+ stars
-                  <button onClick={() => setMinRating("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1, color: "var(--forest-600)", fontSize: 14 }}>×</button>
-                </span>
-              )}
-              <button onClick={() => { setCategoryId(""); setSchoolId(""); setMinRating(""); setKeyword(""); }}
+              <button onClick={() => { setCategoryId(""); setSchoolId(""); setKeyword(""); }}
                 style={{ fontSize: 12, color: "#E53935", background: "none", border: "none", cursor: "pointer", fontWeight: 500 }}>
                 Clear all
               </button>

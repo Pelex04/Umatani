@@ -7,7 +7,6 @@ import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
-import { Stars } from "@/components/ui/Stars";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { Business, Category } from "@/types";
 
@@ -149,7 +148,6 @@ export default function DashboardPage() {
             {/* Stats row */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12, marginBottom: 24 }}>
               {[
-                { label: "Rating", value: biz.average_rating > 0 ? biz.average_rating.toFixed(1) : "N/A", sub: `${biz.review_count} reviews` },
                 { label: "Status", value: biz.status ?? "pending", badge: true },
                 { label: "Portfolio", value: biz.portfolio_items.length, sub: "items uploaded" },
                 { label: "Services", value: biz.services.length, sub: "listed" },
@@ -189,7 +187,6 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <h2 style={{ fontFamily: "var(--font-serif)", fontWeight: 400, fontSize: 20, color: "var(--forest)", marginBottom: 4 }}>{biz.name}</h2>
-                        <Stars rating={biz.average_rating} count={biz.review_count} size={12} />
                       </div>
                     </div>
                     {/* Quick actions */}

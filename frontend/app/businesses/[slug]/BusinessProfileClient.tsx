@@ -7,11 +7,10 @@ import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
-import { Stars } from "@/components/ui/Stars";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ShareButton } from "@/components/ui/ShareButton";
-import { formatDate, timeAgo } from "@/lib/utils";
-import type { Business, Review } from "@/types";
+import { formatDate } from "@/lib/utils";
+import type { Business } from "@/types";
 
 const PALETTES = [
   { bg: "#F5EBDF", text: "#43081F" }, { bg: "#EDE0D3", text: "#5C1129" },
@@ -27,19 +26,8 @@ export default function BusinessProfileClient() {
 
   const { schoolById, categoryById } = useReferenceData();
   const [biz,      setBiz]      = useState<Business | null>(null);
-  const [reviews,  setReviews]  = useState<Review[]>([]);
-  const [revTotal, setRevTotal] = useState(0);
   const [loading,  setLoading]  = useState(true);
-  const [revLoad,  setRevLoad]  = useState(false);
-  const [tab,      setTab]      = useState<"about"|"portfolio"|"reviews">("about");
-  const [rating,   setRating]   = useState(0);
-  const [hover,    setHover]    = useState(0);
-  const [comment,  setComment]  = useState("");
-  const [service,  setService]  = useState("");
-  const [reviewPhotos, setReviewPhotos] = useState<{ file: File; preview: string }[]>([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [revError, setRevError] = useState("");
-  const [revDone,  setRevDone]  = useState(false);
+  const [tab,      setTab]      = useState<"about"|"portfolio">("about");
 
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
@@ -59,46 +47,6 @@ export default function BusinessProfileClient() {
 
   const school = biz ? schoolById(biz.school_id) ?? null : null;
   const category = biz ? categoryById(biz.category_id) ?? null : null;
-
-  const loadReviews = async (off = 0) => {
-    if (!biz) return;
-    setRevLoad(true);
-    const r = await api.reviews.list(biz.id, off, 10);
-    if (off === 0) setReviews(r.items); else setReviews(prev => [...prev, ...r.items]);
-    setRevTotal(r.total);
-    setRevLoad(false);
-  };
-
-  useEffect(() => { if (biz && tab === "reviews") loadReviews(0); }, [biz, tab]);
-
-  const submitReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!biz || rating === 0) { setRevError("Please select a rating."); return; }
-    if (comment.length < 10)  { setRevError("Comment must be at least 10 characters."); return; }
-    setSubmitting(true); setRevError("");
-    try {
-      const photoKeys = await Promise.all(
-        reviewPhotos.map(async p => (await api.media.upload(p.file, "review_photo")).storage_key)
-      );
-      await api.reviews.create({ business_id: biz.id, rating, comment, service_received: service || null, photo_storage_keys: photoKeys });
-      reviewPhotos.forEach(p => URL.revokeObjectURL(p.preview));
-      setRevDone(true); setRating(0); setComment(""); setService(""); setReviewPhotos([]);
-      loadReviews(0);
-    } catch (e: any) { setRevError(e.message ?? "Could not submit review."); }
-    finally { setSubmitting(false); }
-  };
-
-  const addReviewPhoto = (file: File) => {
-    if (reviewPhotos.length >= 5) return;
-    setReviewPhotos(prev => [...prev, { file, preview: URL.createObjectURL(file) }]);
-  };
-
-  const removeReviewPhoto = (index: number) => {
-    setReviewPhotos(prev => {
-      URL.revokeObjectURL(prev[index].preview);
-      return prev.filter((_, i) => i !== index);
-    });
-  };
 
   const submitReport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,7 +141,6 @@ export default function BusinessProfileClient() {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <Stars rating={biz.average_rating} count={biz.review_count} size={14} />
             <span className={`status-tag ${biz.is_available ? "is-open" : "is-closed"}`}>
               {biz.is_available ? "Available" : "Busy"}
             </span>
@@ -206,7 +153,7 @@ export default function BusinessProfileClient() {
           <div className="biz-detail-main">
             {/* Tabs */}
             <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--border)", marginBottom: 28 }}>
-              {(["about","portfolio","reviews"] as const).map(t => (
+              {(["about","portfolio"] as const).map(t => (
                 <button key={t} onClick={() => setTab(t)} style={{
                   padding: "10px 18px", fontSize: 13.5, fontWeight: 500,
                   background: "none", border: "none", cursor: "pointer",
@@ -216,7 +163,6 @@ export default function BusinessProfileClient() {
                   fontFamily: "var(--font-sans)",
                 }}>
                   {t}
-                  {t === "reviews" && revTotal > 0 && <span style={{ marginLeft: 6, fontSize: 11, background: "var(--forest-100)", color: "var(--forest-600)", padding: "1px 6px", borderRadius: 100 }}>{revTotal}</span>}
                   {t === "portfolio" && biz.portfolio_items.length > 0 && <span style={{ marginLeft: 6, fontSize: 11, background: "#F1F3F5", color: "var(--ink-faint)", padding: "1px 6px", borderRadius: 100 }}>{biz.portfolio_items.length}</span>}
                 </button>
               ))}
@@ -275,106 +221,6 @@ export default function BusinessProfileClient() {
               </motion.div>
             )}
 
-            {/* Reviews */}
-            {tab === "reviews" && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-                {user && !isOwner && !revDone && (
-                  <form onSubmit={submitReview} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 18, marginBottom: 20, display: "flex", flexDirection: "column", gap: 12 }}>
-                    <p className="eyebrow">Write a review</p>
-                    <div style={{ display: "flex", gap: 4 }}>
-                      {[1,2,3,4,5].map(i => (
-                        <button key={i} type="button" onClick={() => setRating(i)} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(0)}
-                          style={{ background: "none", border: "none", cursor: "pointer", padding: 2, transition: "transform 0.1s" }}
-                          onMouseDown={e => (e.currentTarget.style.transform = "scale(0.9)")}
-                          onMouseUp={e => (e.currentTarget.style.transform = "")}>
-                          <svg width="26" height="26" viewBox="0 0 16 16" fill={(hover || rating) >= i ? "#C9A84C" : "#E5E7EB"}><path d="M8 1l1.85 3.75L14 5.5l-3 2.92.7 4.08L8 10.35 4.3 12.5l.7-4.08L2 5.5l4.15-.75z"/></svg>
-                        </button>
-                      ))}
-                    </div>
-                    <input value={service} onChange={e => setService(e.target.value)} placeholder="Service received (optional)" className="input" style={{ fontSize: 13 }} />
-                    <div>
-                      <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Share your experience…" rows={3} maxLength={2000} className="input" style={{ resize: "none", fontSize: 13 }} />
-                      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-                        <span style={{ fontSize: 11, color: comment.length > 0 && comment.length < 10 ? "#C53030" : "var(--ink-faint)" }}>
-                          {comment.length < 10 ? `${10 - comment.length} more characters needed` : " "}
-                        </span>
-                        <span style={{ fontSize: 11, color: "var(--ink-faint)" }}>{comment.length}/2000</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: reviewPhotos.length > 0 ? 8 : 0 }}>
-                        {reviewPhotos.map((p, i) => (
-                          <div key={p.preview} style={{ position: "relative", width: 56, height: 56, borderRadius: 2, overflow: "hidden", border: "1px solid var(--border)" }}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={p.preview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            <button type="button" onClick={() => removeReviewPhoto(i)} style={{ position: "absolute", top: 2, right: 2, width: 16, height: 16, borderRadius: 2, background: "rgba(33,4,16,0.7)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                              <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      {reviewPhotos.length < 5 && (
-                        <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 500, color: "var(--forest)", cursor: "pointer" }}>
-                          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 11V3M8 3L5 6M8 3l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M2.5 11v1.5A1.5 1.5 0 004 14h8a1.5 1.5 0 001.5-1.5V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                          Add photo{reviewPhotos.length > 0 ? ` (${reviewPhotos.length}/5)` : ""}
-                          <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
-                            onChange={e => { const f = e.target.files?.[0]; if (f) addReviewPhoto(f); e.target.value = ""; }} />
-                        </label>
-                      )}
-                    </div>
-
-                    {revError && <p style={{ fontSize: 12.5, color: "#C53030" }}>{revError}</p>}
-                    <button type="submit" disabled={submitting} className="btn btn-primary" style={{ alignSelf: "flex-start", fontSize: 13 }}>
-                      {submitting ? "Submitting…" : "Submit review"}
-                    </button>
-                  </form>
-                )}
-                {revDone && <div style={{ background: "var(--forest-100)", borderRadius: 2, padding: "12px 14px", fontSize: 13.5, color: "var(--forest-600)", marginBottom: 20, fontWeight: 500 }}>✓ Review submitted. Thank you!</div>}
-                {!user && <div style={{ background: "var(--forest-50)", border: "1px solid var(--border)", borderRadius: 2, padding: "12px 14px", fontSize: 13.5, color: "var(--ink-muted)", marginBottom: 20 }}>
-                  <Link href="/auth/login" style={{ color: "var(--forest)", fontWeight: 500 }}>Sign in</Link> to leave a review.
-                </div>}
-                {revLoad && reviews.length === 0
-                  ? <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>{[1,2].map(i => <Skeleton key={i} h={80} />)}</div>
-                  : reviews.length === 0
-                  ? <EmptyState text="No reviews yet" />
-                  : <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                      {reviews.map(rev => (
-                        <div key={rev.id} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 16 }}>
-                          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                              <Stars rating={rev.rating} size={13} />
-                              {rev.service_received && <span className="badge badge-slate" style={{ fontSize: 10.5, alignSelf: "flex-start" }}>{rev.service_received}</span>}
-                            </div>
-                            <span style={{ fontSize: 11.5, color: "var(--ink-faint)", flexShrink: 0 }}>{timeAgo(rev.created_at)}</span>
-                          </div>
-                          <p style={{ fontSize: 13.5, color: "var(--ink-muted)", lineHeight: 1.65, whiteSpace: "pre-line" }}>{rev.comment}</p>
-                          {rev.photos.length > 0 && (
-                            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
-                              {rev.photos.map(p => (
-                                <a key={p.id} href={p.display_url} target="_blank" rel="noopener noreferrer" style={{ width: 56, height: 56, borderRadius: 2, overflow: "hidden", border: "1px solid var(--border)", position: "relative", display: "block" }}>
-                                  <Image src={p.display_url} alt="" fill sizes="56px" style={{ objectFit: "cover" }} />
-                                </a>
-                              ))}
-                            </div>
-                          )}
-                          {rev.reply && (
-                            <div style={{ marginTop: 12, background: "var(--forest-50)", borderRadius: 2, padding: "10px 12px", borderLeft: "3px solid var(--forest-400)" }}>
-                              <p style={{ fontSize: 11.5, fontWeight: 600, color: "var(--forest)", marginBottom: 4 }}>{biz.name} replied</p>
-                              <p style={{ fontSize: 13, color: "var(--ink-muted)" }}>{rev.reply.content}</p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                      {reviews.length < revTotal && (
-                        <button onClick={() => loadReviews(reviews.length)} disabled={revLoad} className="btn btn-outline" style={{ alignSelf: "center", fontSize: 13 }}>
-                          {revLoad ? "Loading…" : "Load more reviews"}
-                        </button>
-                      )}
-                    </div>
-                }
-              </motion.div>
-            )}
           </div>
 
           {/* Right — contact sidebar */}

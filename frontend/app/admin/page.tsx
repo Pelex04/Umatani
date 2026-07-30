@@ -114,7 +114,6 @@ export default function AdminDashboard() {
     { label: "Businesses", value: stats.total_businesses, sub: `${stats.approved_businesses} approved`, alert: false },
     { label: "Pending approval", value: stats.pending_businesses, sub: "need review", alert: stats.pending_businesses > 0 },
     { label: "Schools", value: stats.total_schools, sub: `${stats.approved_schools} active`, alert: false },
-    { label: "Reviews", value: stats.total_reviews, sub: `${stats.flagged_reviews} flagged`, alert: stats.flagged_reviews > 0 },
     { label: "Open reports", value: stats.open_reports, sub: "need resolution", alert: stats.open_reports > 0 },
     { label: "Open tickets", value: stats.open_tickets, sub: "awaiting response", alert: stats.open_tickets > 0 },
   ] : [];

@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { Stars } from "@/components/ui/Stars";
 import type { BusinessListItem } from "@/types";
 
 // Burgundy-toned variations only — Direction 3 runs on one committed
@@ -110,10 +109,9 @@ export function BusinessCard({ business, school, category }: Props) {
 
           {/* Footer */}
           <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
+            display: "flex", alignItems: "center", justifyContent: "flex-end",
             paddingTop: 14, borderTop: "1px solid var(--border)",
           }}>
-            <Stars rating={business.average_rating} count={business.review_count} size={12} />
             <span style={{
               fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--forest)",
               display: "flex", alignItems: "center", gap: 4,

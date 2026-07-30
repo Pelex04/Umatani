@@ -44,7 +44,7 @@ export default function LoginPage() {
             Welcome<br /><span style={{ fontWeight: 800 }}>back.</span>
           </h2>
           <p style={{ color: "rgba(250,243,231,0.4)", fontSize: 14.5, lineHeight: 1.75, maxWidth: 280 }}>
-            Manage your business profile, track reviews, and connect with customers across campus.
+            Manage your business profile and connect with customers across campus.
           </p>
         </div>
         <p style={{ color: "rgba(250,243,231,0.18)", fontSize: 11 }}>
