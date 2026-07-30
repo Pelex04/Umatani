@@ -129,6 +129,23 @@ export default function BusinessProfileClient() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--cream)" }}>
+      {/* Utility bar — back + share live here, in the page's own background,
+          instead of floating on top of a cover photo where legibility and
+          hit-target size depend on whatever image an owner uploads. */}
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "16px 24px 12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <button onClick={() => router.back()} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-muted)", fontSize: 13, fontFamily: "var(--font-sans)", display: "flex", alignItems: "center", gap: 6, padding: "6px 4px", transition: "color 0.15s" }}
+        onMouseEnter={e => (e.currentTarget.style.color = "var(--forest)")}
+        onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-muted)")}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          Back
+        </button>
+        <ShareButton
+          title={biz.name}
+          text={`Check out ${biz.name} on Umata?`}
+          url={typeof window !== "undefined" ? window.location.href : `https://umatani.vercel.app/businesses/${biz.slug}`}
+        />
+      </div>
+
       {/* Cover bar */}
       <div style={{ height: 220, background: "var(--forest)", position: "relative", overflow: "hidden" }}>
         {biz.cover_url ? (
@@ -143,30 +160,14 @@ export default function BusinessProfileClient() {
         ) : (
           <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(250,243,231,0.08) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
         )}
-        {/* Gradient scrim so the back button / edit link stay legible over any cover photo */}
-        {biz.cover_url && <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(33,4,16,0.35), rgba(33,4,16,0.05) 40%)" }} />}
-        <div style={{ position: "absolute", top: 20, left: 24, display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => router.back()} style={{ background: "rgba(250,243,231,0.1)", border: "none", borderRadius: 2, padding: "7px 14px", cursor: "pointer", color: "rgba(250,243,231,0.7)", fontSize: 12.5, fontFamily: "var(--font-sans)", display: "flex", alignItems: "center", gap: 6, transition: "background 0.15s" }}
-          onMouseEnter={e => (e.currentTarget.style.background = "rgba(250,243,231,0.16)")}
-          onMouseLeave={e => (e.currentTarget.style.background = "rgba(250,243,231,0.1)")}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            Back
-          </button>
-        </div>
-        <div style={{ position: "absolute", top: 20, right: 24, display: "flex", alignItems: "center", gap: 8 }}>
-          <ShareButton
-            title={biz.name}
-            text={`Check out ${biz.name} on Umata?`}
-            url={typeof window !== "undefined" ? window.location.href : `https://umatani.vercel.app/businesses/${biz.slug}`}
-            dark
-          />
-          {isOwner && <Link href="/dashboard" style={{ fontSize: 12.5, padding: "7px 16px" }} className="btn btn-gold">Edit profile</Link>}
-        </div>
       </div>
 
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 24px" }}>
-        {/* Logo + header */}
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: -36, marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
+        {/* Logo + header. Only the logo overlaps the cover (a fixed, bounded
+            36px via its own offset) — the title never does, so a long or
+            wrapping business name can't end up rendered partly over the
+            photo where it'd be hard to read. */}
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: 16, marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
             <div style={{
               width: 72, height: 72, borderRadius: 2,
@@ -174,7 +175,7 @@ export default function BusinessProfileClient() {
               display: "flex", alignItems: "center", justifyContent: "center",
               fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 26,
               border: "3px solid var(--cream)", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-              overflow: "hidden", position: "relative",
+              overflow: "hidden", position: "relative", top: -36, marginBottom: -36,
             }}>
               {biz.logo_url
                 ? <Image src={biz.logo_url} alt="" fill priority sizes="72px" style={{ objectFit: "cover" }} />
@@ -196,6 +197,7 @@ export default function BusinessProfileClient() {
             <span className={`status-tag ${biz.is_available ? "is-open" : "is-closed"}`}>
               {biz.is_available ? "Available" : "Busy"}
             </span>
+            {isOwner && <Link href="/dashboard" style={{ fontSize: 12.5, padding: "7px 16px" }} className="btn btn-gold">Edit profile</Link>}
           </div>
         </div>
 
@@ -249,11 +251,18 @@ export default function BusinessProfileClient() {
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
                 {biz.portfolio_items.length === 0
                   ? <EmptyState text="No portfolio items yet" />
-                  : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
+                  : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
                       {biz.portfolio_items.map(item => (
-                        <div key={item.id} style={{ aspectRatio: "1", borderRadius: 2, overflow: "hidden", background: "var(--forest-100)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                        <div key={item.id} className="portfolio-tile" style={{ aspectRatio: "1", borderRadius: 2, overflow: "hidden", background: "var(--forest-100)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", transition: "box-shadow 0.2s, transform 0.2s" }}>
                           {item.item_type === "image"
-                            ? <Image src={item.display_url} alt={item.caption ?? ""} fill sizes="(max-width: 640px) 50vw, 200px" style={{ objectFit: "cover" }} />
+                            ? <>
+                                <Image src={item.display_url} alt={item.caption ?? ""} fill sizes="(max-width: 640px) 50vw, 200px" style={{ objectFit: "cover" }} />
+                                {item.caption && (
+                                  <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "18px 10px 8px", background: "linear-gradient(0deg, rgba(33,4,16,0.75), transparent)" }}>
+                                    <p style={{ fontSize: 11.5, color: "var(--cream)", lineHeight: 1.3 }} className="lc-1">{item.caption}</p>
+                                  </div>
+                                )}
+                              </>
                             : <a href={item.display_url} target="_blank" rel="noopener" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, color: "var(--forest-600)", padding: 16, textAlign: "center" }}>
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M11 3H17V9M17 3L9 11M8 4H4C3.45 4 3 4.45 3 5V16C3 16.55 3.45 17 4 17H15C15.55 17 16 16.55 16 16V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 <span style={{ fontSize: 11 }}>{item.caption ?? "Link"}</span>
