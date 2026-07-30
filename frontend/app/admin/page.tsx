@@ -8,13 +8,14 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { formatDate } from "@/lib/utils";
 import type { PlatformStats } from "@/types";
 
-type Tab = "overview"|"users"|"businesses"|"schools"|"reports"|"tickets";
+type Tab = "overview"|"users"|"businesses"|"schools"|"categories"|"reports"|"tickets";
 
 const TABS: { key: Tab; label: string; stat?: keyof PlatformStats }[] = [
   { key: "overview",   label: "Overview" },
   { key: "users",      label: "Users",      stat: "pending_id_review" },
   { key: "businesses", label: "Businesses", stat: "pending_businesses" },
   { key: "schools",    label: "Schools" },
+  { key: "categories", label: "Categories" },
   { key: "reports",    label: "Reports",    stat: "open_reports" },
   { key: "tickets",    label: "Tickets",    stat: "open_tickets" },
 ];
@@ -29,6 +30,10 @@ export default function AdminDashboard() {
   const [acting,  setActing]  = useState<string | null>(null);
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [viewError, setViewError] = useState<string | null>(null);
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatDesc, setNewCatDesc] = useState("");
+  const [creatingCat, setCreatingCat] = useState(false);
+  const [catError, setCatError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== "admin")) { router.push("/"); return; }
@@ -43,6 +48,7 @@ export default function AdminDashboard() {
         case "users":      setRows(await api.admin.users({ limit: 50 })); break;
         case "businesses": { const r = await api.admin.businesses.list("pending") as any; setRows(r.items ?? []); break; }
         case "schools":    setRows(await api.admin.schools.list() as any[]); break;
+        case "categories": setRows(await api.admin.categories.list() as any[]); break;
         case "reports":    setRows(await api.admin.support.reports() as any[]); break;
         case "tickets":    setRows(await api.admin.support.tickets() as any[]); break;
       }
@@ -62,6 +68,20 @@ export default function AdminDashboard() {
       setViewError(err.message ?? "Could not load this ID photo.");
     } finally {
       setViewingId(null);
+    }
+  };
+
+  const createCategory = async () => {
+    if (!newCatName.trim()) return;
+    setCreatingCat(true); setCatError(null);
+    try {
+      await api.admin.categories.create({ name: newCatName.trim(), description: newCatDesc.trim() || null });
+      setNewCatName(""); setNewCatDesc("");
+      await loadTab("categories");
+    } catch (err: any) {
+      setCatError(err.message ?? "Could not create category.");
+    } finally {
+      setCreatingCat(false);
     }
   };
 
@@ -237,6 +257,57 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Categories */}
+        {tab === "categories" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 16 }}>
+              <p style={{ fontSize: 12.5, fontWeight: 600, color: "var(--forest)", marginBottom: 10 }}>Add category</p>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <input value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="Name (e.g. Photography)"
+                  style={{ flex: "1 1 200px", fontSize: 13, padding: "8px 12px", border: "1px solid var(--border-med)", borderRadius: 2 }} />
+                <input value={newCatDesc} onChange={e => setNewCatDesc(e.target.value)} placeholder="Description (optional)"
+                  style={{ flex: "2 1 260px", fontSize: 13, padding: "8px 12px", border: "1px solid var(--border-med)", borderRadius: 2 }} />
+                <button onClick={createCategory} disabled={creatingCat || !newCatName.trim()}
+                  style={{ fontSize: 12.5, fontWeight: 600, background: "var(--forest)", color: "var(--cream)", border: "none", borderRadius: 2, padding: "8px 18px", cursor: "pointer" }}>
+                  {creatingCat ? "Adding…" : "Add"}
+                </button>
+              </div>
+              {catError && <p style={{ fontSize: 12, color: "#C53030", marginTop: 8 }}>{catError}</p>}
+              <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 8 }}>
+                Deactivating a category hides it from the public list immediately, without deleting it —
+                categories still used by an existing business can't be removed entirely, only deactivated.
+              </p>
+            </div>
+
+            {loading ? <TableSkeleton /> : rows.map((c: any) => (
+              <div key={c.id} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontWeight: 500, color: "var(--forest)", fontSize: 13.5, marginBottom: 2 }}>{c.name}</p>
+                  <p style={{ fontSize: 12, color: "var(--ink-faint)" }}>/{c.slug}{c.description ? ` · ${c.description}` : ""}</p>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+                  <span style={{
+                    background: c.is_active ? "#E8F0EA" : "#F1F3F5",
+                    color: c.is_active ? "#2B6438" : "#6B7280",
+                    fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 100,
+                  }}>{c.is_active ? "Active" : "Inactive"}</span>
+                  {c.is_active
+                    ? <button onClick={() => act(() => api.admin.categories.deactivate(c.id), c.id)} disabled={!!acting}
+                        style={{ fontSize: 12.5, color: "#DC2626", background: "none", border: "none", cursor: "pointer", fontWeight: 500 }}>
+                        {acting === c.id ? "…" : "Remove"}
+                      </button>
+                    : <button onClick={() => act(() => api.admin.categories.activate(c.id), c.id)} disabled={!!acting}
+                        style={{ fontSize: 12.5, fontWeight: 600, background: "var(--forest)", color: "var(--cream)", border: "none", borderRadius: 2, padding: "6px 14px", cursor: "pointer" }}>
+                        {acting === c.id ? "…" : "Restore"}
+                      </button>
+                  }
+                </div>
+              </div>
+            ))}
+            {!loading && rows.length === 0 && <AllClear text="No categories yet" />}
           </div>
         )}
 

@@ -15,6 +15,12 @@ export interface Category {
   display_order: number;
 }
 
+export interface CategoryAdmin extends Category {
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Service {
   id: string;
   name: string;

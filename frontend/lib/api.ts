@@ -268,5 +268,33 @@ export const api = {
         request(`/admin/support/tickets/${id}`, { method: "PATCH", body: JSON.stringify(data) }, true),
     },
     auditLogs: () => request("/admin/audit-logs", {}, true),
+    categories: {
+      list: () => request<import("@/types").CategoryAdmin[]>("/admin/categories", {}, true),
+      create: (data: { name: string; description?: string | null; icon_url?: string | null; display_order?: number }) =>
+        request<import("@/types").CategoryAdmin>(
+          "/admin/categories", { method: "POST", body: JSON.stringify(data) }, true
+        ),
+      update: (id: string, data: {
+        name?: string; description?: string | null; icon_url?: string | null;
+        display_order?: number; is_active?: boolean;
+      }) =>
+        request<import("@/types").CategoryAdmin>(
+          `/admin/categories/${id}`, { method: "PATCH", body: JSON.stringify(data) }, true
+        ),
+      // There's no hard-delete endpoint by design: categories.id is
+      // referenced by businesses.category_id with ON DELETE RESTRICT,
+      // so the DB would reject deleting a category still in use.
+      // "Removing" a category means deactivating it (is_active: false) —
+      // it disappears from the public list and can't be selected for new
+      // businesses, without breaking existing businesses that reference it.
+      deactivate: (id: string) =>
+        request<import("@/types").CategoryAdmin>(
+          `/admin/categories/${id}`, { method: "PATCH", body: JSON.stringify({ is_active: false }) }, true
+        ),
+      activate: (id: string) =>
+        request<import("@/types").CategoryAdmin>(
+          `/admin/categories/${id}`, { method: "PATCH", body: JSON.stringify({ is_active: true }) }, true
+        ),
+    },
   },
 };
