@@ -20,8 +20,25 @@ import sys
 
 from app.core.database import AsyncSessionLocal
 from app.core.security import hash_password
-from app.modules.auth.models import User, UserRole, UserStatus
+
+# All mapped models must be imported before SQLAlchemy configures its
+# mappers, or foreign keys pointing at tables whose model was never
+# imported (e.g. users.school_id -> schools.id) fail to resolve at
+# flush time. Kept in sync with alembic/env.py's import list.
+from app.modules.auth.models import (  # noqa: F401
+    EmailVerificationToken,
+    RefreshToken,
+    User,
+    UserRole,
+    UserStatus,
+)
 from app.modules.auth.repository import UserRepository
+from app.modules.businesses.models import Business, PortfolioItem, Service  # noqa: F401
+from app.modules.categories.models import Category  # noqa: F401
+from app.modules.reviews.models import Review, ReviewPhoto, ReviewReply  # noqa: F401
+from app.modules.schools.models import School  # noqa: F401
+from app.modules.support.models import Report, SupportTicket  # noqa: F401
+from app.shared.audit import AuditLog  # noqa: F401
 
 
 def _validate_password(password: str) -> None:
