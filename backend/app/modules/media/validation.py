@@ -132,6 +132,69 @@ _JPEG_QUALITY_BY_PURPOSE: dict[UploadPurpose, int] = {
 _DEFAULT_JPEG_QUALITY = 82
 
 
+def _trim_logo_padding(img: "Image.Image") -> "Image.Image":
+    """
+    Business logos exported from most icon/design tools carry a chunk
+    of transparent or solid-color padding baked around the actual mark
+    — invisible in a big preview, but very visible once shown in this
+    app's small square logo badge. objectFit:cover can't crop that
+    padding away on its own: the badge and the source image are both
+    square, so there's nothing for "cover" to crop — the padding is
+    baked into the image's own pixels, not something CSS sizing can
+    see past. Detect it here and trim it, then pad the trimmed mark
+    back out to a square canvas so it still displays correctly in a
+    1:1 container without stretching or losing part of the mark.
+    """
+    from PIL import Image, ImageChops
+
+    rgba = img.convert("RGBA")
+    alpha = rgba.getchannel("A")
+    is_transparent = alpha.getextrema()[0] < 250
+
+    if is_transparent:
+        bbox = alpha.point(lambda a: 255 if a > 8 else 0).getbbox()
+    else:
+        # Fully opaque — assume a solid-color background matching
+        # whichever color sits in the corner, and trim to whatever
+        # differs from it (small tolerance for compression noise /
+        # anti-aliasing at the mark's edge).
+        corner = rgba.getpixel((0, 0))
+        bg = Image.new("RGB", rgba.size, corner[:3])
+        diff = ImageChops.difference(rgba.convert("RGB"), bg)
+        bbox = diff.point(lambda p: 255 if p > 18 else 0).getbbox()
+
+    if not bbox:
+        return img
+
+    left, top, right, bottom = bbox
+    trimmed_w, trimmed_h = right - left, bottom - top
+
+    # Bail out rather than trim if there's basically no padding to
+    # remove, or if what's "detected" is implausibly tiny (a near-
+    # solid-color image would otherwise get trimmed to a sliver).
+    if trimmed_w > img.width * 0.96 and trimmed_h > img.height * 0.96:
+        return img
+    if trimmed_w < img.width * 0.05 or trimmed_h < img.height * 0.05:
+        return img
+
+    # Add a little breathing room back so the mark isn't flush
+    # against the badge's edges.
+    pad = int(max(trimmed_w, trimmed_h) * 0.08)
+    left = max(0, left - pad)
+    top = max(0, top - pad)
+    right = min(img.width, right + pad)
+    bottom = min(img.height, bottom + pad)
+    cropped = rgba.crop((left, top, right, bottom))
+
+    # Pad back out to a square canvas (centered) — cropping straight
+    # to a square here instead would cut off part of a non-square mark.
+    side = max(cropped.width, cropped.height)
+    fill = (0, 0, 0, 0) if is_transparent else (*corner[:3], 255)
+    canvas = Image.new("RGBA", (side, side), fill)
+    canvas.paste(cropped, ((side - cropped.width) // 2, (side - cropped.height) // 2), cropped)
+    return canvas
+
+
 def optimize_image(content: bytes, *, purpose: UploadPurpose) -> tuple[bytes, DetectedFileType]:
     """
     Downscales to the purpose's max dimension and re-encodes, dropping
@@ -145,6 +208,11 @@ def optimize_image(content: bytes, *, purpose: UploadPurpose) -> tuple[bytes, De
     Pillow can't decode the content for any reason — optimization is a
     quality-of-life improvement, not something an upload should ever hard
     -fail on.
+
+    BUSINESS_LOGO additionally gets its padding auto-trimmed first (see
+    _trim_logo_padding) — covers and portfolio photos are left alone,
+    since those are real photographs where content legitimately runs to
+    the edges and shouldn't be auto-cropped.
     """
     from io import BytesIO
 
@@ -157,6 +225,12 @@ def optimize_image(content: bytes, *, purpose: UploadPurpose) -> tuple[bytes, De
         return content, detect_file_type(content) or DetectedFileType(
             mime_type="image/jpeg", extension="jpg"
         )
+
+    if purpose == UploadPurpose.BUSINESS_LOGO:
+        try:
+            img = _trim_logo_padding(img)
+        except Exception:
+            pass  # trimming is a nice-to-have; never let it break an upload
 
     has_alpha = img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info)
 
