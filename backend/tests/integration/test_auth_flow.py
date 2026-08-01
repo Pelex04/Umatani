@@ -227,6 +227,125 @@ class TestEmailVerificationAndLogin:
             await service.verify_email("this-token-was-never-issued")
 
 
+class TestForgotPasswordReset:
+    async def test_forgot_password_returns_204_regardless_of_email_existing(
+        self, app_client: AsyncClient, approved_school: School
+    ) -> None:
+        """Same enumeration-resistance the other auth endpoints use — the
+        HTTP response must not reveal whether the email is registered."""
+        await app_client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": "rasta5@mubas.ac.mw", "password": VALID_PASSWORD,
+                "full_name": "Rasta Kadema", "school_id": str(approved_school.id),
+            },
+        )
+
+        real = await app_client.post(
+            "/api/v1/auth/forgot-password", json={"email": "rasta5@mubas.ac.mw"}
+        )
+        fake = await app_client.post(
+            "/api/v1/auth/forgot-password", json={"email": "nobody-at-all@mubas.ac.mw"}
+        )
+        assert real.status_code == fake.status_code == 204
+
+    async def test_full_reset_flow_changes_password_and_revokes_sessions(
+        self, db_session: AsyncSession, approved_school: School
+    ) -> None:
+        from app.modules.auth.service import AuthService
+
+        service = AuthService(db_session)
+        user, _ = await service.register(
+            email="rasta6@mubas.ac.mw", password=VALID_PASSWORD,
+            full_name="Rasta Kadema", school_id=approved_school.id,
+        )
+        await db_session.commit()
+
+        # Log in first so there's a live session to prove gets revoked.
+        _, _, old_refresh_token = await service.login(
+            email="rasta6@mubas.ac.mw", password=VALID_PASSWORD
+        )
+        await db_session.commit()
+
+        result = await service.forgot_password("rasta6@mubas.ac.mw")
+        await db_session.commit()
+        assert result is not None
+        _, raw_reset_token = result
+
+        new_password = "BrandNewPass456"
+        reset_user = await service.reset_password(raw_reset_token, new_password)
+        await db_session.commit()
+        assert reset_user.id == user.id
+
+        # Old password no longer works, new one does.
+        with pytest.raises(Exception):
+            await service.login(email="rasta6@mubas.ac.mw", password=VALID_PASSWORD)
+        await db_session.rollback()
+        _, access, _ = await service.login(email="rasta6@mubas.ac.mw", password=new_password)
+        assert access
+
+        # The session that existed before the reset must no longer work.
+        from app.modules.auth.service import AuthError
+        with pytest.raises(AuthError):
+            await service.refresh(old_refresh_token)
+
+    async def test_reset_password_token_is_single_use(
+        self, db_session: AsyncSession, approved_school: School
+    ) -> None:
+        from app.modules.auth.service import AuthError, AuthService
+
+        service = AuthService(db_session)
+        await service.register(
+            email="rasta7@mubas.ac.mw", password=VALID_PASSWORD,
+            full_name="Rasta Kadema", school_id=approved_school.id,
+        )
+        await db_session.commit()
+
+        result = await service.forgot_password("rasta7@mubas.ac.mw")
+        await db_session.commit()
+        assert result is not None
+        _, raw_reset_token = result
+
+        await service.reset_password(raw_reset_token, "FirstNewPass789")
+        await db_session.commit()
+
+        with pytest.raises(AuthError, match="invalid or has expired"):
+            await service.reset_password(raw_reset_token, "SecondNewPass789")
+
+    async def test_reset_password_with_bogus_token_fails(
+        self, db_session: AsyncSession
+    ) -> None:
+        from app.modules.auth.service import AuthError, AuthService
+
+        service = AuthService(db_session)
+        with pytest.raises(AuthError, match="invalid or has expired"):
+            await service.reset_password("this-token-was-never-issued", "SomeNewPass123")
+
+    async def test_forgot_password_for_suspended_account_still_issues_token(
+        self, db_session: AsyncSession, approved_school: School
+    ) -> None:
+        """
+        Deliberately not gated on account status (unlike resend-verification,
+        which IS gated) — a suspended user still owns their email address
+        and can legitimately want to reset a forgotten password, even
+        though the resulting account remains blocked at login by the
+        separate suspended-account check there.
+        """
+        from app.modules.auth.models import UserStatus
+        from app.modules.auth.service import AuthService
+
+        service = AuthService(db_session)
+        user, _ = await service.register(
+            email="rasta8@mubas.ac.mw", password=VALID_PASSWORD,
+            full_name="Rasta Kadema", school_id=approved_school.id,
+        )
+        user.status = UserStatus.SUSPENDED
+        await db_session.commit()
+
+        result = await service.forgot_password("rasta8@mubas.ac.mw")
+        assert result is not None
+
+
 class TestRefreshTokenRotation:
     async def test_refresh_issues_new_tokens_and_revokes_old(
         self, app_client: AsyncClient, approved_school: School

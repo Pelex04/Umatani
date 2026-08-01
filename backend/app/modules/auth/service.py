@@ -32,9 +32,10 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.modules.auth.models import EmailVerificationToken, User, UserRole, UserStatus
+from app.modules.auth.models import EmailVerificationToken, PasswordResetToken, User, UserRole, UserStatus
 from app.modules.auth.repository import (
     EmailVerificationTokenRepository,
+    PasswordResetTokenRepository,
     RefreshTokenRepository,
     UserRepository,
 )
@@ -83,6 +84,7 @@ class AuthService:
         self.users = UserRepository(db)
         self.refresh_tokens = RefreshTokenRepository(db)
         self.verification_tokens = EmailVerificationTokenRepository(db)
+        self.password_reset_tokens = PasswordResetTokenRepository(db)
 
     async def register(
         self, *, email: str, password: str, full_name: str, school_id: uuid.UUID
@@ -156,6 +158,73 @@ class AuthService:
             + timedelta(hours=settings.EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS),
         )
         return user, raw_token
+
+    async def forgot_password(self, email: str) -> tuple[User, str] | None:
+        """
+        Issues a password reset token for an existing account. Returns
+        None (rather than raising) when there's no matching account, so
+        the route layer can give the same generic "check your email"
+        response either way — same email-enumeration precaution used
+        throughout this module. Unlike resend_verification_email, this
+        is intentionally NOT gated on account status: a suspended or
+        not-yet-verified user still owns their email address and should
+        be able to reset a forgotten password (whether that then lets
+        them log in is a separate check, made at login).
+        """
+        email = email.lower().strip()
+        user = await self.users.get_by_email(email)
+        if user is None:
+            return None
+
+        raw_token = secrets.token_urlsafe(32)
+        await self.password_reset_tokens.create(
+            user_id=user.id,
+            token_hash=_hash_opaque_token(raw_token),
+            expires_at=datetime.now(UTC)
+            + timedelta(hours=settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS),
+        )
+        return user, raw_token
+
+    async def reset_password(self, raw_token: str, new_password: str) -> User:
+        token_hash = _hash_opaque_token(raw_token)
+
+        result = await self.db.execute(
+            select(PasswordResetToken).where(
+                PasswordResetToken.token_hash == token_hash,
+                PasswordResetToken.used_at.is_(None),
+            )
+        )
+        token_record = result.scalar_one_or_none()
+
+        if token_record is None or _as_aware_utc(token_record.expires_at) < datetime.now(UTC):
+            raise AuthError("This reset link is invalid or has expired")
+
+        user = await self.db.get(User, token_record.user_id)
+        if user is None:
+            raise AuthError("This reset link is invalid or has expired")
+
+        token_record.used_at = datetime.now(UTC)
+        user.hashed_password = hash_password(new_password)
+        # A forgotten password is often forgotten because it was never
+        # memorable in the first place, or (worse) because the account
+        # was compromised — either way, clear any lockout state and, more
+        # importantly, revoke every existing session. Otherwise a stolen
+        # refresh token issued before the reset would remain valid,
+        # defeating the point of resetting a password to begin with.
+        user.failed_login_attempts = 0
+        user.locked_until = None
+        await self.refresh_tokens.revoke_all_for_user(user.id)
+
+        await record_audit_event(
+            self.db,
+            action="user.password_reset",
+            resource_type="user",
+            resource_id=str(user.id),
+            actor_id=user.id,
+            actor_role=user.role,
+        )
+        await self.db.flush()
+        return user
 
     async def verify_email(self, raw_token: str) -> User:
         token_hash = _hash_opaque_token(raw_token)

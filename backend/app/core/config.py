@@ -44,6 +44,7 @@ class Settings(BaseSettings):
 
     # --- Email verification ---
     EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS: int = 24
+    PASSWORD_RESET_TOKEN_EXPIRE_HOURS: int = 1
     # Used to build links inside emails (verify-email, dashboard, etc).
     # Point this at whatever the frontend's real current URL is — Vercel's
     # default domain until a custom domain is wired up, then switch it.

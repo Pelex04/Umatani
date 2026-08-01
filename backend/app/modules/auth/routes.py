@@ -16,8 +16,10 @@ from app.core.limiter import limiter
 from app.modules.auth.models import User
 from app.modules.auth.schemas import (
     EmailVerificationRequest,
+    ForgotPasswordRequest,
     RefreshTokenRequest,
     ResendVerificationRequest,
+    ResetPasswordRequest,
     StudentIdSubmissionResponse,
     TokenPairResponse,
     UserLoginRequest,
@@ -99,6 +101,47 @@ async def resend_verification(
         await send_verification_email(
             to=user.email, full_name=user.full_name, token=verification_token
         )
+
+
+@router.post("/forgot-password", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(get_settings().RATE_LIMIT_AUTH)
+async def forgot_password(
+    request: Request,
+    payload: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """
+    Always returns 204 regardless of whether the email matched an
+    account — same email-enumeration precaution as the other auth
+    endpoints — so this can't be used to check whether a given email
+    is registered.
+    """
+    service = AuthService(db)
+    result = await service.forgot_password(payload.email)
+    await db.commit()
+    if result is not None:
+        user, reset_token = result
+        from app.core.email import send_password_reset_email
+        await send_password_reset_email(
+            to=user.email, full_name=user.full_name, token=reset_token
+        )
+
+
+@router.post("/reset-password", response_model=UserPublicResponse)
+@limiter.limit(get_settings().RATE_LIMIT_AUTH)
+async def reset_password(
+    request: Request,
+    payload: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+) -> UserPublicResponse:
+    service = AuthService(db)
+    try:
+        user = await service.reset_password(payload.token, payload.new_password)
+        await db.commit()
+    except AuthError as exc:
+        await db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message) from exc
+    return UserPublicResponse.model_validate(user)
 
 
 @router.post("/login", response_model=TokenPairResponse)

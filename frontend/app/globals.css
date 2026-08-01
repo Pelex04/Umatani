@@ -84,6 +84,17 @@ input, textarea, select { font-family: var(--font-sans); }
 .lc-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .lc-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .portfolio-tile:hover { box-shadow: 0 6px 16px rgba(33,4,16,0.12); transform: translateY(-2px); }
+
+/* Hero stats band — 1x4 on desktop, wraps to 2x2 on narrow screens
+   instead of overflowing the viewport (4 columns of padded text never
+   fit a phone width, which is what was bleeding off-screen). */
+.hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+.hero-stats > div:not(:last-child) { border-right: 1px solid rgba(250,243,231,0.06); }
+@media (max-width: 640px) {
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .hero-stats > div:nth-child(2n) { border-right: none; }
+  .hero-stats > div:nth-child(-n+2) { border-bottom: 1px solid rgba(250,243,231,0.06); }
+}
 .lc-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* ─── Buttons ────────────────────────────────────── */

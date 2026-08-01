@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.auth.models import EmailVerificationToken, RefreshToken, User
+from app.modules.auth.models import EmailVerificationToken, PasswordResetToken, RefreshToken, User
 from app.shared.repository import BaseRepository
 
 
@@ -47,3 +47,8 @@ class EmailVerificationTokenRepository(BaseRepository[EmailVerificationToken]):
         )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
+
+
+class PasswordResetTokenRepository(BaseRepository[PasswordResetToken]):
+    def __init__(self, session: AsyncSession) -> None:
+        super().__init__(PasswordResetToken, session)

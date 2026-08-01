@@ -27,6 +27,7 @@ from app.core.security import hash_password
 # flush time. Kept in sync with alembic/env.py's import list.
 from app.modules.auth.models import (  # noqa: F401
     EmailVerificationToken,
+    PasswordResetToken,
     RefreshToken,
     User,
     UserRole,

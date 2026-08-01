@@ -100,6 +100,16 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ email }),
       }),
+    forgotPassword: (email: string) =>
+      request("/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
+    resetPassword: (token: string, new_password: string) =>
+      request<import("@/types").User>("/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ token, new_password }),
+      }),
     submitStudentId: (storageKey: string) =>
       request(`/auth/student-id?storage_key=${encodeURIComponent(storageKey)}`, {
         method: "POST",

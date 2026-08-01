@@ -28,7 +28,7 @@ from app.core.security import hash_password
 # mappers, or foreign keys pointing at tables whose model was never
 # imported (e.g. users.school_id -> schools.id) fail to resolve at
 # flush time. Kept in sync with alembic/env.py's import list.
-from app.modules.auth.models import EmailVerificationToken, RefreshToken, User  # noqa: F401
+from app.modules.auth.models import EmailVerificationToken, PasswordResetToken, RefreshToken, User  # noqa: F401
 from app.modules.businesses.models import Business, PortfolioItem, Service  # noqa: F401
 from app.modules.categories.models import Category  # noqa: F401
 from app.modules.reviews.models import Review, ReviewPhoto, ReviewReply  # noqa: F401

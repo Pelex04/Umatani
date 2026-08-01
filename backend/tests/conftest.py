@@ -31,7 +31,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.core.database import Base, get_db
 from app.core.security import create_access_token, hash_password
-from app.modules.auth.models import EmailVerificationToken, RefreshToken, User, UserRole, UserStatus  # noqa: F401
+from app.modules.auth.models import EmailVerificationToken, PasswordResetToken, RefreshToken, User, UserRole, UserStatus  # noqa: F401
 from app.modules.businesses.models import Business, PortfolioItem, Service  # noqa: F401
 from app.modules.reviews.models import Review, ReviewPhoto, ReviewReply  # noqa: F401
 from app.modules.support.models import Report, SupportTicket  # noqa: F401

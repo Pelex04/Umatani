@@ -25,6 +25,7 @@ export default function Home() {
   const [focused,   setFocused]   = useState(false);
   const { categories: cats, schools } = useReferenceData();
   const [bizList,   setBizList]   = useState<BusinessListItem[]>([]);
+  const [bizTotal,  setBizTotal]  = useState<number | null>(null);
   const [loading,   setLoading]   = useState(true);
 
   useEffect(() => {
@@ -34,7 +35,7 @@ export default function Home() {
 
   useEffect(() => {
     api.businesses.search({ limit: 3 })
-      .then(b => setBizList(b.items))
+      .then(b => { setBizList(b.items); setBizTotal(b.total); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -202,17 +203,19 @@ export default function Home() {
 
         {/* Bottom stats bar */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2, duration: 0.7 }}
+          className="hero-stats"
           style={{
             position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 4,
             borderTop: "1px solid rgba(250,243,231,0.06)",
             background: "rgba(33,4,16,0.65)", backdropFilter: "blur(16px)",
-            display: "flex",
           }}>
-          {[["3","Verified businesses"],["12","Service categories"],["1","University"],["Free","Always"]].map(([n, l], i) => (
-            <div key={n} style={{
-              flex: 1, padding: "18px 24px", textAlign: "center",
-              borderRight: i < 3 ? "1px solid rgba(250,243,231,0.06)" : "none",
-            }}>
+          {[
+            [bizTotal === null ? "—" : String(bizTotal), "Verified businesses"],
+            [cats.length === 0 ? "—" : String(cats.length), "Service categories"],
+            [schools.length === 0 ? "—" : String(schools.length), "Universities"],
+            ["Free", "Always"],
+          ].map(([n, l], i) => (
+            <div key={l} style={{ padding: "14px 20px", textAlign: "center" }}>
               <div style={{ fontFamily: "var(--font-mono)", fontWeight: 500, fontSize: 20, color: "var(--cream)", lineHeight: 1, marginBottom: 4 }}>{n}</div>
               <div style={{ fontSize: 10, color: "rgba(250,243,231,0.35)", letterSpacing: "0.08em", fontFamily: "var(--font-sans)", textTransform: "uppercase" }}>{l}</div>
             </div>

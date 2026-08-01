@@ -18,7 +18,7 @@ from app.core.config import get_settings
 from app.core.database import Base
 
 # --- Import all ORM models so Base.metadata is fully populated ---
-from app.modules.auth.models import EmailVerificationToken, RefreshToken, User  # noqa: F401
+from app.modules.auth.models import EmailVerificationToken, PasswordResetToken, RefreshToken, User  # noqa: F401
 from app.modules.businesses.models import Business, PortfolioItem, Service  # noqa: F401
 from app.modules.reviews.models import Review, ReviewPhoto, ReviewReply  # noqa: F401
 from app.modules.support.models import Report, SupportTicket  # noqa: F401

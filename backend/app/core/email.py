@@ -105,6 +105,38 @@ async def send_verification_email(*, to: str, full_name: str, token: str) -> Non
     await send_email(to=to, subject=subject, html=html, plain=plain)
 
 
+async def send_password_reset_email(*, to: str, full_name: str, token: str) -> None:
+    reset_url = f"{settings.FRONTEND_URL}/auth/reset-password?token={token}"
+    subject = "Reset your Umata? password"
+    plain = (
+        f"Hi {full_name},\n\n"
+        f"We received a request to reset your Umata? password. Visit this link to choose a new one:\n\n"
+        f"{reset_url}\n\n"
+        f"This link expires in {settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS} hour(s).\n\n"
+        f"If you didn't request this, you can safely ignore this email — your password won't be changed.\n\n"
+        f"The Umata? Team"
+    )
+    html = f"""
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+      <h2>Reset your password</h2>
+      <p>Hi {full_name},</p>
+      <p>We received a request to reset your Umata? password. Click below to choose a new one.</p>
+      <p style="margin:32px 0;">
+        <a href="{reset_url}"
+           style="background:#2563eb;color:#fff;padding:12px 24px;
+                  border-radius:6px;text-decoration:none;font-weight:600;">
+          Reset Password
+        </a>
+      </p>
+      <p style="color:#6b7280;font-size:14px;">
+        This link expires in {settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS} hour(s).
+        If you didn't request this, you can safely ignore this email — your password won't be changed.
+      </p>
+    </div>
+    """
+    await send_email(to=to, subject=subject, html=html, plain=plain)
+
+
 async def send_approval_email(*, to: str, full_name: str) -> None:
     subject = "Your Umata? account has been verified!"
     plain = (

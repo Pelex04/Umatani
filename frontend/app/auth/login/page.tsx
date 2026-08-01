@@ -80,9 +80,14 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--forest)", marginBottom: 7, letterSpacing: "0.01em" }}>
-                Password
-              </label>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
+                <label style={{ fontSize: 12, fontWeight: 500, color: "var(--forest)", letterSpacing: "0.01em" }}>
+                  Password
+                </label>
+                <Link href="/auth/forgot-password" style={{ fontSize: 12, color: "var(--ink-faint)", textDecoration: "none" }}>
+                  Forgot password?
+                </Link>
+              </div>
               <div style={{ position: "relative" }}>
                 <input type={show ? "text" : "password"} value={password}
                   onChange={e => setPassword(e.target.value)}
