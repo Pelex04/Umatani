@@ -106,7 +106,7 @@ export default function BusinessProfileClient() {
         <ShareButton
           title={biz.name}
           text={`Check out ${biz.name} on Umata?`}
-          url={typeof window !== "undefined" ? window.location.href : `https://umatani.vercel.app/businesses/${biz.slug}`}
+          url={typeof window !== "undefined" ? window.location.href : `https://www.umata.site/businesses/${biz.slug}`}
         />
       </div>
 

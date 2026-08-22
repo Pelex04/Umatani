@@ -35,7 +35,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://umatani.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.umata.site"),
   title: { default: "Umata? · Student Business Discovery", template: "%s · Umata?" },
   description: "Discover trusted student entrepreneurs at Malawian universities. Find graphic designers, photographers, bakers, programmers and more.",
   openGraph: {

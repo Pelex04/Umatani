@@ -40,15 +40,17 @@ class Settings(BaseSettings):
     ARGON2_PARALLELISM: int = 2
 
     # --- CORS ---
-    ALLOWED_ORIGINS: list[str] = ["https://umatani.vercel.app"]
+    ALLOWED_ORIGINS: list[str] = [
+        "https://umata.site",
+        "https://www.umata.site",
+        "https://umatani.vercel.app",
+    ]
 
     # --- Email verification ---
     EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS: int = 24
     PASSWORD_RESET_TOKEN_EXPIRE_HOURS: int = 1
     # Used to build links inside emails (verify-email, dashboard, etc).
-    # Point this at whatever the frontend's real current URL is — Vercel's
-    # default domain until a custom domain is wired up, then switch it.
-    FRONTEND_URL: str = "https://umatani.vercel.app"
+    FRONTEND_URL: str = "https://www.umata.site"
     # Brevo's transactional HTTP API — not SMTP. Render (and many hosts)
     # block outbound raw SMTP sockets on free/starter tiers, which broke
     # verification email delivery entirely; the HTTP API rides over normal
