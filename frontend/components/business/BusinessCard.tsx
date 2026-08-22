@@ -41,10 +41,10 @@ export function BusinessCard({ business, school, category }: Props) {
           background: pal.bg, display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           <div style={{
-            width: 56, height: 56, borderRadius: 2,
+            width: 84, height: 84, borderRadius: 2,
             background: "var(--white)", color: pal.text,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "var(--font-serif)", fontWeight: 800, fontSize: 18,
+            fontFamily: "var(--font-serif)", fontWeight: 800, fontSize: 24,
             letterSpacing: "-0.01em", border: "1px solid var(--border)",
             overflow: "hidden", position: "relative",
           }}>
@@ -54,7 +54,7 @@ export function BusinessCard({ business, school, category }: Props) {
                 src={business.logo_url}
                 alt=""
                 fill
-                sizes="56px"
+                sizes="84px"
                 style={{ objectFit: "cover" }}
                 // Grid cards are almost always below the initial viewport
                 // fold — default lazy loading means the browser doesn't

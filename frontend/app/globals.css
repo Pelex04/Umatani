@@ -84,6 +84,8 @@ input, textarea, select { font-family: var(--font-sans); }
 .lc-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .lc-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .portfolio-tile:hover { box-shadow: 0 6px 16px rgba(33,4,16,0.12); transform: translateY(-2px); }
+.portfolio-tile:hover .portfolio-tile-zoom { background: rgba(33,4,16,0.28) !important; }
+.portfolio-tile:hover .portfolio-tile-zoom-icon { opacity: 1 !important; }
 
 /* Hero stats band — 1x4 on desktop, wraps to 2x2 on narrow screens
    instead of overflowing the viewport (4 columns of padded text never

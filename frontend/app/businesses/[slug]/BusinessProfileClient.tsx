@@ -3,14 +3,14 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ShareButton } from "@/components/ui/ShareButton";
 import { formatDate } from "@/lib/utils";
-import type { Business } from "@/types";
+import type { Business, PortfolioItem } from "@/types";
 
 const PALETTES = [
   { bg: "#F5EBDF", text: "#43081F" }, { bg: "#EDE0D3", text: "#5C1129" },
@@ -45,6 +45,7 @@ export default function BusinessProfileClient() {
   const [tab,      setTab]      = useState<"about"|"portfolio">("about");
 
   const [showReport, setShowReport] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [reportReason, setReportReason] = useState("");
   const [reportDetails, setReportDetails] = useState("");
   const [reportHoneypot, setReportHoneypot] = useState(""); // spam trap — see form below
@@ -213,11 +214,21 @@ export default function BusinessProfileClient() {
                 {biz.portfolio_items.length === 0
                   ? <EmptyState text="No portfolio items yet" />
                   : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
-                      {biz.portfolio_items.map(item => (
-                        <div key={item.id} className="portfolio-tile" style={{ aspectRatio: "1", borderRadius: 2, overflow: "hidden", background: "var(--forest-100)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", transition: "box-shadow 0.2s, transform 0.2s" }}>
+                      {biz.portfolio_items.map(item => {
+                        const imageItems = biz.portfolio_items.filter(i => i.item_type === "image");
+                        const imageIndex = imageItems.findIndex(i => i.id === item.id);
+                        return (
+                        <div key={item.id} className="portfolio-tile" style={{ aspectRatio: "1", borderRadius: 2, overflow: "hidden", background: "var(--forest-100)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", transition: "box-shadow 0.2s, transform 0.2s", cursor: item.item_type === "image" ? "pointer" : "default" }}
+                          onClick={() => { if (item.item_type === "image") setLightboxIndex(imageIndex); }}>
                           {item.item_type === "image"
                             ? <>
                                 <Image src={item.display_url} alt={item.caption ?? ""} fill sizes="(max-width: 640px) 50vw, 200px" style={{ objectFit: "cover" }} />
+                                <div className="portfolio-tile-zoom" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(33,4,16,0)", transition: "background 0.15s" }}>
+                                  <svg width="22" height="22" viewBox="0 0 20 20" fill="none" className="portfolio-tile-zoom-icon" style={{ opacity: 0, transition: "opacity 0.15s" }}>
+                                    <circle cx="8.5" cy="8.5" r="6" stroke="white" strokeWidth="1.6"/><path d="M13 13l4 4" stroke="white" strokeWidth="1.6" strokeLinecap="round"/>
+                                    <path d="M8.5 6v5M6 8.5h5" stroke="white" strokeWidth="1.4" strokeLinecap="round"/>
+                                  </svg>
+                                </div>
                                 {item.caption && (
                                   <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "18px 10px 8px", background: "linear-gradient(0deg, rgba(33,4,16,0.75), transparent)" }}>
                                     <p style={{ fontSize: 11.5, color: "var(--cream)", lineHeight: 1.3 }} className="lc-1">{item.caption}</p>
@@ -230,10 +241,20 @@ export default function BusinessProfileClient() {
                               </a>
                           }
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                 }
               </motion.div>
+            )}
+
+            {lightboxIndex !== null && (
+              <PortfolioLightbox
+                items={biz.portfolio_items.filter(i => i.item_type === "image")}
+                index={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+                onNavigate={setLightboxIndex}
+              />
             )}
 
           </div>
@@ -382,6 +403,83 @@ export default function BusinessProfileClient() {
         </div>
       )}
     </div>
+  );
+}
+
+function PortfolioLightbox({
+  items, index, onClose, onNavigate,
+}: {
+  items: PortfolioItem[]; index: number;
+  onClose: () => void; onNavigate: (i: number) => void;
+}) {
+  const item = items[index];
+  const hasMultiple = items.length > 1;
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight" && hasMultiple) onNavigate((index + 1) % items.length);
+      if (e.key === "ArrowLeft" && hasMultiple) onNavigate((index - 1 + items.length) % items.length);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => { document.body.style.overflow = prevOverflow; window.removeEventListener("keydown", handleKey); };
+  }, [index, items.length, hasMultiple, onClose, onNavigate]);
+
+  if (!item) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
+        onClick={onClose}
+        style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(20,3,10,0.94)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+
+        <button onClick={onClose} aria-label="Close" style={{
+          position: "absolute", top: 20, right: 20, width: 40, height: 40, borderRadius: 2,
+          background: "rgba(250,243,231,0.08)", border: "none", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cream)",
+        }}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 2l14 14M16 2L2 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+        </button>
+
+        {hasMultiple && (
+          <>
+            <button onClick={e => { e.stopPropagation(); onNavigate((index - 1 + items.length) % items.length); }} aria-label="Previous image" style={{
+              position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 44, height: 44, borderRadius: 2,
+              background: "rgba(250,243,231,0.08)", border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cream)",
+            }}>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 3L5 9l6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+            <button onClick={e => { e.stopPropagation(); onNavigate((index + 1) % items.length); }} aria-label="Next image" style={{
+              position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", width: 44, height: 44, borderRadius: 2,
+              background: "rgba(250,243,231,0.08)", border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cream)",
+            }}>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M7 3l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+          </>
+        )}
+
+        <motion.div
+          key={item.id}
+          initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.18 }}
+          onClick={e => e.stopPropagation()}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, maxWidth: "min(90vw, 900px)", maxHeight: "88vh" }}>
+          <div style={{ position: "relative", width: "min(90vw, 900px)", height: "min(74vh, 700px)" }}>
+            <Image src={item.display_url} alt={item.caption ?? ""} fill sizes="90vw" style={{ objectFit: "contain" }} />
+          </div>
+          {(item.caption || hasMultiple) && (
+            <div style={{ display: "flex", alignItems: "center", gap: 12, color: "rgba(250,243,231,0.75)", fontSize: 13, textAlign: "center" }}>
+              {item.caption && <span>{item.caption}</span>}
+              {hasMultiple && <span style={{ color: "rgba(250,243,231,0.4)" }}>{index + 1} / {items.length}</span>}
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
