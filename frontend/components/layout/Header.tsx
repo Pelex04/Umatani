@@ -59,6 +59,7 @@ export function Header() {
           {/* Desktop nav */}
           <nav style={{ display: "flex", gap: 2, flex: 1, justifyContent: "center" }}>
             {navLink("Discover", "/discover")}
+            {navLink("About", "/about")}
             {navLink("Support", "/support")}
           </nav>
 
@@ -164,6 +165,7 @@ export function Header() {
         {mobile && (
           <div style={{ borderTop: "1px solid var(--border)", padding: "10px 16px 14px", background: "rgba(250,243,231,0.98)" }}>
             {navLink("Discover", "/discover")}
+            {navLink("About", "/about")}
             {navLink("Support", "/support")}
             {!user && navLink("Sign in", "/auth/login")}
             {!user && navLink("List your business", "/auth/register")}

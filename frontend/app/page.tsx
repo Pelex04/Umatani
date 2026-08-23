@@ -361,7 +361,7 @@ export default function Home() {
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <span style={{ fontFamily: "var(--font-serif)", fontWeight: 800, color: "rgba(250,243,231,0.45)", fontSize: 18 }}>umata<span style={{ opacity: 0.5 }}>?</span></span>
           <div style={{ display: "flex", gap: 24 }}>
-            {[["Discover","/discover"],["Register","/auth/register"],["Sign in","/auth/login"]].map(([l,h]) => (
+            {[["Discover","/discover"],["About","/about"],["Register","/auth/register"],["Sign in","/auth/login"]].map(([l,h]) => (
               <Link key={h} href={h} style={{ color: "rgba(250,243,231,0.28)", fontSize: 12, textDecoration: "none", transition: "color 0.15s" }}
               onMouseEnter={e => (e.currentTarget.style.color = "rgba(250,243,231,0.65)")}
               onMouseLeave={e => (e.currentTarget.style.color = "rgba(250,243,231,0.28)")}>{l}</Link>
