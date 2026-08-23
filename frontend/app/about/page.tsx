@@ -15,10 +15,13 @@ import { useReferenceData } from "@/lib/referenceData";
 interface TeamMember {
   name: string;
   role: string;
-  bio: string;
+  bio?: string;
   photo_url?: string;
 }
-const TEAM: TeamMember[] = [];
+const TEAM: TeamMember[] = [
+  { name: "Morrice Nkhoma", role: "Co-founder & CEO" },
+  { name: "Kingsley Chideru", role: "Co-founder & CTO" },
+];
 
 const PALETTES = [
   { bg: "var(--forest-100)", text: "var(--forest)" },
@@ -143,8 +146,8 @@ export default function AboutPage() {
                         : initials(member.name)}
                     </div>
                     <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--forest)", marginBottom: 2 }}>{member.name}</p>
-                    <p style={{ fontSize: 12, color: "var(--gold-dark)", fontWeight: 500, marginBottom: 10 }}>{member.role}</p>
-                    <p style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.6 }}>{member.bio}</p>
+                    <p style={{ fontSize: 12, color: "var(--gold-dark)", fontWeight: 500, marginBottom: member.bio ? 10 : 0 }}>{member.role}</p>
+                    {member.bio && <p style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.6 }}>{member.bio}</p>}
                   </div>
                 );
               })}
