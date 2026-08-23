@@ -7,20 +7,25 @@ import { api } from "@/lib/api";
 import { useReferenceData } from "@/lib/referenceData";
 
 // --- Team ---------------------------------------------------------------
-// Waiting on real names/roles/bios before this goes in. Add entries here
-// once we have them — the section below renders this list automatically,
-// so no markup changes will be needed, just data. photo_url is optional;
-// without one, a member gets an initials badge like the rest of the app
-// uses for businesses without a logo.
 interface TeamMember {
   name: string;
+  alias?: string;
   role: string;
   bio?: string;
   photo_url?: string;
 }
 const TEAM: TeamMember[] = [
-  { name: "Morrice Nkhoma", role: "Co-founder & CEO" },
-  { name: "Kingsley Chideru", role: "Co-founder & CTO" },
+  {
+    name: "Morrice Nkhoma",
+    role: "Co-founder & CEO",
+    bio: "Final-year Information Systems student at MUBAS, and founder of YazaIT Malawi, which offers top-notch university lessons. Passionate about academics and helping students in every way he can — one of the minds behind Umata?.",
+  },
+  {
+    name: "Kingsley Chideru",
+    alias: "Rasta Kadema",
+    role: "Co-founder & CTO",
+    bio: "Software developer and final-year Information Technology student. Founder of Chezax Malawi, a platform providing enterprise communication for institutions, and the developer behind Umata?.",
+  },
 ];
 
 const PALETTES = [
@@ -145,7 +150,10 @@ export default function AboutPage() {
                         ? <Image src={member.photo_url} alt="" fill sizes="56px" style={{ objectFit: "cover" }} />
                         : initials(member.name)}
                     </div>
-                    <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--forest)", marginBottom: 2 }}>{member.name}</p>
+                    <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--forest)", marginBottom: 2 }}>
+                      {member.name}
+                      {member.alias && <span style={{ fontWeight: 400, color: "var(--ink-faint)" }}> ({member.alias})</span>}
+                    </p>
                     <p style={{ fontSize: 12, color: "var(--gold-dark)", fontWeight: 500, marginBottom: member.bio ? 10 : 0 }}>{member.role}</p>
                     {member.bio && <p style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.6 }}>{member.bio}</p>}
                   </div>

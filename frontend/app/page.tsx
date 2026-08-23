@@ -10,6 +10,8 @@ import { BusinessCard } from "@/components/business/BusinessCard";
 import type { BusinessListItem } from "@/types";
 
 const ROTATING_WORDS = ["designs", "bakes", "codes", "photographs", "tutors", "tailors", "repairs", "decorates"];
+// Set to Umata?'s real Facebook page URL to show the icon in the footer.
+const SITE_FACEBOOK_URL = "";
 
 export default function Home() {
   const router = useRouter();
@@ -360,12 +362,21 @@ export default function Home() {
       <footer style={{ background: "#150208", padding: "28px 6vw" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <span style={{ fontFamily: "var(--font-serif)", fontWeight: 800, color: "rgba(250,243,231,0.45)", fontSize: 18 }}>umata<span style={{ opacity: 0.5 }}>?</span></span>
-          <div style={{ display: "flex", gap: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
             {[["Discover","/discover"],["About","/about"],["Register","/auth/register"],["Sign in","/auth/login"]].map(([l,h]) => (
               <Link key={h} href={h} style={{ color: "rgba(250,243,231,0.28)", fontSize: 12, textDecoration: "none", transition: "color 0.15s" }}
               onMouseEnter={e => (e.currentTarget.style.color = "rgba(250,243,231,0.65)")}
               onMouseLeave={e => (e.currentTarget.style.color = "rgba(250,243,231,0.28)")}>{l}</Link>
             ))}
+            {/* Waiting on the real page URL — dormant until SITE_FACEBOOK_URL is set below. */}
+            {SITE_FACEBOOK_URL && (
+              <a href={SITE_FACEBOOK_URL} target="_blank" rel="noopener" aria-label="Umata? on Facebook"
+                style={{ color: "rgba(250,243,231,0.28)", display: "flex", transition: "color 0.15s" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "rgba(250,243,231,0.65)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(250,243,231,0.28)")}>
+                <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M12.5 3h-2A3.5 3.5 0 007 6.5V9H5v3h2v6h3v-6h2.5l.5-3H10V6.75c0-.69.56-.75 1-.75h1.5V3z" fill="currentColor"/></svg>
+              </a>
+            )}
           </div>
           <span style={{ fontSize: 11, color: "rgba(250,243,231,0.18)" }}>© {new Date().getFullYear()} Umata? · Malawi</span>
         </div>
