@@ -134,28 +134,56 @@ export default function AboutPage() {
           </p>
 
           {TEAM.length > 0 && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
               {TEAM.map(member => {
                 const c = pal(member.name);
                 return (
-                  <div key={member.name} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 20 }}>
-                    <div style={{
-                      width: 56, height: 56, borderRadius: 2, marginBottom: 14,
-                      background: member.photo_url ? "var(--cream)" : c.bg, color: c.text,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 18,
-                      overflow: "hidden", position: "relative",
+                  <div key={member.name} className="team-card" style={{
+                    background: "white", border: "1px solid var(--border)", borderRadius: 2,
+                    padding: "32px 28px", position: "relative", overflow: "hidden",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                  }}>
+                    {/* Large faded serif initial in the corner — same quote-mark
+                        motif as the name-origin card above, so the team section
+                        reads as part of one considered page rather than a plain
+                        directory box tacked on the end. */}
+                    <span style={{
+                      position: "absolute", top: -6, right: 10, fontFamily: "var(--font-serif)",
+                      fontWeight: 800, fontSize: 96, lineHeight: 1, color: c.bg,
+                      userSelect: "none", pointerEvents: "none",
                     }}>
-                      {member.photo_url
-                        ? <Image src={member.photo_url} alt="" fill sizes="56px" style={{ objectFit: "cover" }} />
-                        : initials(member.name)}
+                      {member.name[0]}
+                    </span>
+
+                    <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
+                      <div style={{
+                        width: 72, height: 72, borderRadius: "50%", flexShrink: 0,
+                        background: member.photo_url ? "var(--cream)" : c.bg, color: c.text,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 24,
+                        overflow: "hidden", position: "relative",
+                        border: "3px solid var(--cream)", boxShadow: "0 0 0 1px var(--border)",
+                      }}>
+                        {member.photo_url
+                          ? <Image src={member.photo_url} alt="" fill sizes="72px" style={{ objectFit: "cover" }} />
+                          : initials(member.name)}
+                      </div>
+                      <div>
+                        <p style={{ fontFamily: "var(--font-serif)", fontSize: 19, fontWeight: 700, color: "var(--forest)", lineHeight: 1.25 }}>
+                          {member.name}
+                        </p>
+                        {member.alias && (
+                          <p style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 13, color: "var(--ink-faint)", marginTop: 1 }}>
+                            "{member.alias}"
+                          </p>
+                        )}
+                        <span className="badge badge-gold" style={{ marginTop: 7, display: "inline-block" }}>{member.role}</span>
+                      </div>
                     </div>
-                    <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--forest)", marginBottom: 2 }}>
-                      {member.name}
-                      {member.alias && <span style={{ fontWeight: 400, color: "var(--ink-faint)" }}> ({member.alias})</span>}
-                    </p>
-                    <p style={{ fontSize: 12, color: "var(--gold-dark)", fontWeight: 500, marginBottom: member.bio ? 10 : 0 }}>{member.role}</p>
-                    {member.bio && <p style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.6 }}>{member.bio}</p>}
+
+                    {member.bio && (
+                      <p style={{ position: "relative", fontSize: 13.5, color: "var(--ink-muted)", lineHeight: 1.75 }}>{member.bio}</p>
+                    )}
                   </div>
                 );
               })}
