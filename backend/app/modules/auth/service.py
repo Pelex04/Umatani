@@ -271,6 +271,7 @@ class AuthService:
 
         token_record.used_at = datetime.now(UTC)
         user.status = UserStatus.PENDING_ID_REVIEW
+        user.email_verified_at = datetime.now(UTC)
 
         await record_audit_event(
             self.db,

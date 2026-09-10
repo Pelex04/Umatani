@@ -314,6 +314,14 @@ class BusinessService:
             actor_id=admin.id,
             actor_role=admin.role,
         )
+
+        owner = await self.db.get(User, biz.owner_id)
+        if owner is not None:
+            from app.core.email import send_business_approval_email
+            await send_business_approval_email(
+                to=owner.email, full_name=owner.full_name, business_name=biz.name
+            )
+
         return await self.businesses.get_by_id_with_relations(biz.id)
 
     async def suspend(self, *, admin: User, business_id: uuid.UUID) -> Business:

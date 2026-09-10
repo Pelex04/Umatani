@@ -166,6 +166,7 @@ async def verify_user(
             detail="This user has not submitted a student ID yet",
         )
     user.status = UserStatus.VERIFIED
+    user.id_verified_at = datetime.now(UTC)
     await db.commit()
 
     from app.core.email import send_approval_email
