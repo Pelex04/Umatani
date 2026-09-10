@@ -65,12 +65,12 @@ export default function Home() {
             dark background instead, which is intentional, not a fallback. */}
         <motion.div className="hero-image-panel" style={{ scale: imgScale, position: "absolute", top: 0, right: 0, width: "52%", height: "100%", overflow: "hidden", background: "#210410" }}>
           <Image
-            src="https://images.unsplash.com/photo-1687422808384-c896d0efd4ab?q=80&w=1600&auto=format&fit=crop"
+            src="/hero-students.jpg"
             alt=""
             fill
             priority
             sizes="52vw"
-            style={{ objectFit: "cover", objectPosition: "center 30%" }}
+            style={{ objectFit: "cover", objectPosition: "center 25%" }}
           />
           {/* Dark scrim — a real photo needs more darkening than a pure
               gradient did, both so the left-edge text-fade below still
@@ -94,12 +94,6 @@ export default function Home() {
           </svg>
           {/* Cream dot grid */}
           <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(250,243,231,0.1) 1px, transparent 1px)", backgroundSize: "32px 32px", opacity: 0.6 }} />
-          {/* Unsplash License doesn't require attribution, but it's a nice
-              courtesy to the photographer and costs nothing visually. */}
-          <a href="https://unsplash.com/@mkumbwajr" target="_blank" rel="noopener noreferrer"
-            style={{ position: "absolute", bottom: 10, right: 14, fontSize: 9.5, color: "rgba(250,243,231,0.28)", textDecoration: "none", fontFamily: "var(--font-sans)", letterSpacing: "0.02em" }}>
-            Photo: Ali Mkumbwa / Unsplash
-          </a>
         </motion.div>
 
         {/* Left gradient fade */}
