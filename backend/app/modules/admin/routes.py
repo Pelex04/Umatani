@@ -5,8 +5,10 @@ Provides aggregated analytics and cross-module management views.
 All routes require UserRole.ADMIN.
 """
 from datetime import UTC, datetime, timedelta
+from typing import Literal
+import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,6 +28,8 @@ router = APIRouter(
     tags=["admin"],
     dependencies=[Depends(require_role(UserRole.ADMIN))],
 )
+
+logger = logging.getLogger(__name__)
 
 
 class PlatformStats(BaseModel):
@@ -52,6 +56,12 @@ class UserAdminResponse(BaseModel):
     school_id: str | None
     student_id_submitted: bool
     created_at: datetime
+
+
+class BroadcastRequest(BaseModel):
+    subject: str
+    message: str
+    audience: Literal["all_users", "verified_users", "pending_review", "business_owners"]
 
 
 @router.get("/stats", response_model=PlatformStats)
@@ -210,3 +220,44 @@ async def list_audit_logs(
         }
         for log in logs
     ]
+
+
+async def _send_broadcast(recipients: list[tuple[str, str]], subject: str, message: str) -> None:
+    """Runs after the response is sent (see BackgroundTasks below) so a
+    broadcast to a large audience doesn't hold the request open — one
+    HTTP call per recipient via Brevo, no batching/queue infra needed
+    at this volume, but worth revisiting with a real queue if the user
+    base grows into the thousands."""
+    from app.core.email import send_broadcast_email
+    for email, full_name in recipients:
+        try:
+            await send_broadcast_email(to=email, subject=subject, message=message)
+        except Exception:
+            logger.exception("Broadcast email failed for %s", email)
+
+
+@router.post("/broadcast")
+async def broadcast_email(
+    payload: BroadcastRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    stmt = select(User.email, User.full_name)
+
+    if payload.audience == "verified_users":
+        stmt = stmt.where(User.status == UserStatus.VERIFIED)
+    elif payload.audience == "pending_review":
+        stmt = stmt.where(User.status == UserStatus.PENDING_ID_REVIEW)
+    elif payload.audience == "business_owners":
+        stmt = stmt.join(Business, Business.owner_id == User.id).distinct()
+    # "all_users" — no filter
+
+    result = await db.execute(stmt)
+    recipients = [(email, full_name) for email, full_name in result.all()]
+
+    if not recipients:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No matching recipients")
+
+    background_tasks.add_task(_send_broadcast, recipients, payload.subject, payload.message)
+
+    return {"recipient_count": len(recipients), "status": "queued"}

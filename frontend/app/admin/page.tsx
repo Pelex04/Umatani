@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { formatDate } from "@/lib/utils";
 import type { PlatformStats } from "@/types";
 
-type Tab = "overview"|"users"|"businesses"|"schools"|"categories"|"reports"|"tickets";
+type Tab = "overview"|"users"|"businesses"|"schools"|"categories"|"reports"|"tickets"|"broadcast";
 
 const TABS: { key: Tab; label: string; stat?: keyof PlatformStats }[] = [
   { key: "overview",   label: "Overview" },
@@ -18,6 +18,7 @@ const TABS: { key: Tab; label: string; stat?: keyof PlatformStats }[] = [
   { key: "categories", label: "Categories" },
   { key: "reports",    label: "Reports",    stat: "open_reports" },
   { key: "tickets",    label: "Tickets",    stat: "open_tickets" },
+  { key: "broadcast",  label: "Broadcast" },
 ];
 
 export default function AdminDashboard() {
@@ -38,6 +39,20 @@ export default function AdminDashboard() {
   const [creatingSchool, setCreatingSchool] = useState(false);
   const [schoolError, setSchoolError] = useState<string | null>(null);
 
+  // Businesses tab — status filter + detail panel
+  const [bizStatusFilter, setBizStatusFilter] = useState<"pending"|"approved"|"suspended"|"all">("pending");
+  const [selectedBiz, setSelectedBiz] = useState<any | null>(null);
+  const [bizDetailLoading, setBizDetailLoading] = useState(false);
+  const [bizDetailError, setBizDetailError] = useState<string | null>(null);
+
+  // Broadcast tab
+  const [broadcastSubject, setBroadcastSubject] = useState("");
+  const [broadcastMessage, setBroadcastMessage] = useState("");
+  const [broadcastAudience, setBroadcastAudience] = useState<"all_users"|"verified_users"|"pending_review"|"business_owners">("all_users");
+  const [sendingBroadcast, setSendingBroadcast] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState<{ recipient_count: number } | null>(null);
+  const [broadcastError, setBroadcastError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!authLoading && (!user || user.role !== "admin")) { router.push("/"); return; }
     if (!user) return;
@@ -49,7 +64,7 @@ export default function AdminDashboard() {
     try {
       switch (t) {
         case "users":      setRows(await api.admin.users({ limit: 50 })); break;
-        case "businesses": { const r = await api.admin.businesses.list("pending") as any; setRows(r.items ?? []); break; }
+        case "businesses": { const r = await api.admin.businesses.list(bizStatusFilter === "all" ? undefined : bizStatusFilter) as any; setRows(r.items ?? []); break; }
         case "schools":    setRows(await api.admin.schools.list() as any[]); break;
         case "categories": setRows(await api.admin.categories.list() as any[]); break;
         case "reports":    setRows(await api.admin.support.reports() as any[]); break;
@@ -60,6 +75,59 @@ export default function AdminDashboard() {
 
   const act = async (fn: () => Promise<any>, id: string) => {
     setActing(id); try { await fn(); await loadTab(tab); } finally { setActing(null); }
+  };
+
+  useEffect(() => {
+    if (tab === "businesses") loadTab("businesses");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bizStatusFilter]);
+
+  const openBizDetail = async (id: string) => {
+    setBizDetailLoading(true); setBizDetailError(null); setSelectedBiz({ id }); // show panel immediately with a loading state
+    try {
+      const detail = await api.admin.businesses.get(id);
+      setSelectedBiz(detail);
+    } catch (err: any) {
+      setBizDetailError(err.message ?? "Could not load this business.");
+    } finally {
+      setBizDetailLoading(false);
+    }
+  };
+
+  const closeBizDetail = () => { setSelectedBiz(null); setBizDetailError(null); };
+
+  const runBizAction = async (fn: () => Promise<any>) => {
+    if (!selectedBiz) return;
+    setActing(selectedBiz.id);
+    try {
+      await fn();
+      await loadTab("businesses");
+      await openBizDetail(selectedBiz.id); // refresh the open panel with the new status
+    } catch (err: any) {
+      setBizDetailError(err.message ?? "Action failed.");
+    } finally {
+      setActing(null);
+    }
+  };
+
+  const sendBroadcast = async () => {
+    if (!broadcastSubject.trim() || !broadcastMessage.trim()) return;
+    const confirmed = window.confirm(
+      `Send this email to ${broadcastAudience.replace("_", " ")}? This can't be undone.`
+    );
+    if (!confirmed) return;
+    setSendingBroadcast(true); setBroadcastError(null); setBroadcastResult(null);
+    try {
+      const result = await api.admin.broadcast({
+        subject: broadcastSubject.trim(), message: broadcastMessage.trim(), audience: broadcastAudience,
+      });
+      setBroadcastResult(result);
+      setBroadcastSubject(""); setBroadcastMessage("");
+    } catch (err: any) {
+      setBroadcastError(err.message ?? "Could not send broadcast.");
+    } finally {
+      setSendingBroadcast(false);
+    }
   };
 
   const viewStudentId = async (userId: string) => {
@@ -232,29 +300,147 @@ export default function AdminDashboard() {
         {/* Businesses */}
         {tab === "businesses" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <p style={{ fontSize: 12.5, color: "var(--ink-faint)", marginBottom: 6 }}>Pending approval</p>
+            <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+              {(["pending","approved","suspended","all"] as const).map(f => (
+                <button key={f} onClick={() => setBizStatusFilter(f)}
+                  style={{
+                    fontSize: 12.5, fontWeight: 600, padding: "6px 14px", borderRadius: 100, cursor: "pointer",
+                    textTransform: "capitalize",
+                    background: bizStatusFilter === f ? "var(--forest)" : "white",
+                    color: bizStatusFilter === f ? "var(--cream)" : "var(--ink-faint)",
+                    border: `1px solid ${bizStatusFilter === f ? "var(--forest)" : "var(--border)"}`,
+                  }}>
+                  {f}
+                </button>
+              ))}
+            </div>
             {loading ? <TableSkeleton /> : rows.length === 0
-              ? <AllClear text="No businesses pending approval" />
+              ? <AllClear text={`No ${bizStatusFilter === "all" ? "" : bizStatusFilter} businesses`} />
               : rows.map((b: any) => (
-                  <div key={b.id} style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14 }}>
+                  <div key={b.id} onClick={() => openBizDetail(b.id)}
+                    style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
                     <div style={{ width: 40, height: 40, borderRadius: 2, background: "var(--forest-100)", color: "var(--forest)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-serif)", fontWeight: 700, fontSize: 16, flexShrink: 0 }}>{b.name[0]}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontWeight: 500, color: "var(--forest)", fontSize: 13.5, marginBottom: 2 }}>{b.name}</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                        <p style={{ fontWeight: 500, color: "var(--forest)", fontSize: 13.5 }}>{b.name}</p>
+                        <StatusPill status={b.status ?? bizStatusFilter} />
+                      </div>
                       <p style={{ fontSize: 12, color: "var(--ink-faint)" }} className="lc-1">{b.description}</p>
                     </div>
-                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                      <button onClick={() => act(() => api.admin.businesses.approve(b.id), `${b.id}a`)} disabled={!!acting}
-                        style={{ fontSize: 12.5, fontWeight: 600, background: "var(--forest)", color: "var(--cream)", border: "none", borderRadius: 2, padding: "7px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
-                        {acting === `${b.id}a` ? "…" : "Approve"}
-                      </button>
-                      <button onClick={() => act(() => api.admin.businesses.suspend(b.id), `${b.id}s`)} disabled={!!acting}
-                        style={{ fontSize: 12.5, fontWeight: 500, background: "#FFF0F0", color: "#DC2626", border: "1px solid #FED2D2", borderRadius: 2, padding: "7px 14px", cursor: "pointer" }}>
-                        Reject
+                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                      {bizStatusFilter === "pending" && (
+                        <button onClick={() => act(() => api.admin.businesses.approve(b.id), `${b.id}a`)} disabled={!!acting}
+                          style={{ fontSize: 12.5, fontWeight: 600, background: "var(--forest)", color: "var(--cream)", border: "none", borderRadius: 2, padding: "7px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                          {acting === `${b.id}a` ? "…" : "Approve"}
+                        </button>
+                      )}
+                      <button onClick={() => openBizDetail(b.id)}
+                        style={{ fontSize: 12.5, fontWeight: 500, background: "none", color: "var(--forest-600)", border: "1px solid var(--border-med)", borderRadius: 2, padding: "7px 14px", cursor: "pointer" }}>
+                        View
                       </button>
                     </div>
                   </div>
                 ))
             }
+          </div>
+        )}
+
+        {/* Business detail panel */}
+        {selectedBiz && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(33,4,16,0.35)", zIndex: 50, display: "flex", justifyContent: "flex-end" }} onClick={closeBizDetail}>
+            <div onClick={e => e.stopPropagation()}
+              style={{ width: "min(480px, 100%)", height: "100%", background: "#FAF3E7", overflowY: "auto", padding: 28, boxShadow: "-8px 0 24px rgba(0,0,0,0.15)" }}>
+              <button onClick={closeBizDetail} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-faint)", fontSize: 13, marginBottom: 18 }}>&larr; Close</button>
+
+              {bizDetailLoading || !selectedBiz.name ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>{[1,2,3,4].map(i => <Skeleton key={i} h={40} r={2} />)}</div>
+              ) : (
+                <>
+                  {bizDetailError && <p style={{ fontSize: 12.5, color: "#C53030", marginBottom: 14 }}>{bizDetailError}</p>}
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                    <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 24, fontWeight: 300, color: "var(--forest)" }}>{selectedBiz.name}</h2>
+                    <StatusPill status={selectedBiz.status} />
+                  </div>
+                  <p style={{ fontSize: 12, color: "var(--ink-faint)", marginBottom: 20 }}>
+                    Listed {formatDate(selectedBiz.created_at)} &middot; {selectedBiz.average_rating?.toFixed?.(1) ?? "—"}★ ({selectedBiz.review_count ?? 0} reviews)
+                  </p>
+
+                  {/* Owner */}
+                  {selectedBiz.owner && (
+                    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 14, marginBottom: 18 }}>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Owner</p>
+                      <p style={{ fontSize: 13.5, fontWeight: 500, color: "var(--forest)" }}>{selectedBiz.owner.full_name}</p>
+                      <p style={{ fontSize: 12.5, color: "var(--ink-faint)", marginBottom: 6 }}>{selectedBiz.owner.email}</p>
+                      <StatusPill status={selectedBiz.owner.status} />
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  <div style={{ marginBottom: 18 }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Description</p>
+                    <p style={{ fontSize: 13.5, color: "var(--ink)", lineHeight: 1.55 }}>{selectedBiz.description}</p>
+                  </div>
+
+                  {/* Contact */}
+                  <div style={{ marginBottom: 18 }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Contact</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 13 }}>
+                      {selectedBiz.phone && <span>📞 {selectedBiz.phone}</span>}
+                      {selectedBiz.whatsapp && <span>💬 {selectedBiz.whatsapp}</span>}
+                      {selectedBiz.contact_email && <span>✉️ {selectedBiz.contact_email}</span>}
+                      {selectedBiz.website && <span>🔗 {selectedBiz.website}</span>}
+                      {!selectedBiz.phone && !selectedBiz.whatsapp && !selectedBiz.contact_email && !selectedBiz.website && (
+                        <span style={{ color: "var(--ink-faint)" }}>No contact info provided</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Services */}
+                  {selectedBiz.services?.length > 0 && (
+                    <div style={{ marginBottom: 18 }}>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Services ({selectedBiz.services.length})</p>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        {selectedBiz.services.map((s: any) => (
+                          <div key={s.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: "8px 12px" }}>
+                            <span>{s.name}</span>
+                            {s.price != null && <span style={{ color: "var(--ink-faint)" }}>{s.price}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Portfolio */}
+                  {selectedBiz.portfolio_items?.length > 0 && (
+                    <div style={{ marginBottom: 18 }}>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Portfolio ({selectedBiz.portfolio_items.length})</p>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                        {selectedBiz.portfolio_items.map((p: any) => (
+                          <img key={p.id} src={p.image_url} alt="" style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 2, border: "1px solid var(--border)" }} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div style={{ display: "flex", gap: 10, marginTop: 24, paddingTop: 18, borderTop: "1px solid var(--border)" }}>
+                    {selectedBiz.status !== "approved" && (
+                      <button onClick={() => runBizAction(() => api.admin.businesses.approve(selectedBiz.id))} disabled={!!acting}
+                        style={{ flex: 1, fontSize: 13, fontWeight: 600, background: "var(--forest)", color: "var(--cream)", border: "none", borderRadius: 2, padding: "10px", cursor: "pointer" }}>
+                        {acting === selectedBiz.id ? "…" : "Approve"}
+                      </button>
+                    )}
+                    {selectedBiz.status !== "suspended" && (
+                      <button onClick={() => runBizAction(() => api.admin.businesses.suspend(selectedBiz.id))} disabled={!!acting}
+                        style={{ flex: 1, fontSize: 13, fontWeight: 600, background: "#FFF0F0", color: "#DC2626", border: "1px solid #FED2D2", borderRadius: 2, padding: "10px", cursor: "pointer" }}>
+                        {acting === selectedBiz.id ? "…" : "Suspend"}
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         )}
 
@@ -419,6 +605,52 @@ export default function AdminDashboard() {
                   </div>
                 ))
             }
+          </div>
+        )}
+
+        {/* Broadcast */}
+        {tab === "broadcast" && (
+          <div style={{ maxWidth: 560 }}>
+            <p style={{ fontSize: 12.5, color: "var(--ink-faint)", marginBottom: 20 }}>
+              Send a one-off email to a group of users. This can't be undone once sent.
+            </p>
+
+            <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 2, padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 6 }}>Audience</label>
+                <select value={broadcastAudience} onChange={e => setBroadcastAudience(e.target.value as any)}
+                  style={{ width: "100%", fontSize: 13, padding: "9px 12px", border: "1px solid var(--border-med)", borderRadius: 2, background: "white" }}>
+                  <option value="all_users">All users</option>
+                  <option value="verified_users">Verified users</option>
+                  <option value="pending_review">Pending ID review</option>
+                  <option value="business_owners">Business owners</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 6 }}>Subject</label>
+                <input value={broadcastSubject} onChange={e => setBroadcastSubject(e.target.value)} placeholder="e.g. Umata? maintenance this weekend"
+                  style={{ width: "100%", fontSize: 13, padding: "9px 12px", border: "1px solid var(--border-med)", borderRadius: 2, boxSizing: "border-box" }} />
+              </div>
+
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 6 }}>Message</label>
+                <textarea value={broadcastMessage} onChange={e => setBroadcastMessage(e.target.value)} rows={8} placeholder="Plain text — line breaks are preserved."
+                  style={{ width: "100%", fontSize: 13, padding: "9px 12px", border: "1px solid var(--border-med)", borderRadius: 2, fontFamily: "inherit", resize: "vertical", boxSizing: "border-box" }} />
+              </div>
+
+              {broadcastError && <p style={{ fontSize: 12.5, color: "#C53030" }}>{broadcastError}</p>}
+              {broadcastResult && (
+                <p style={{ fontSize: 12.5, color: "#2B6438" }}>
+                  Queued for {broadcastResult.recipient_count} recipient{broadcastResult.recipient_count === 1 ? "" : "s"}.
+                </p>
+              )}
+
+              <button onClick={sendBroadcast} disabled={sendingBroadcast || !broadcastSubject.trim() || !broadcastMessage.trim()}
+                style={{ fontSize: 13, fontWeight: 600, background: "var(--forest)", color: "var(--cream)", border: "none", borderRadius: 2, padding: "11px", cursor: "pointer", opacity: sendingBroadcast ? 0.6 : 1 }}>
+                {sendingBroadcast ? "Sending…" : "Send broadcast"}
+              </button>
+            </div>
           </div>
         )}
       </div>

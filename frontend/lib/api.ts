@@ -261,11 +261,17 @@ export const api = {
     businesses: {
       list: (status?: string) =>
         request(`/admin/businesses${status ? `?status=${status}` : ""}`, {}, true),
+      get: (id: string) =>
+        request(`/admin/businesses/${id}`, {}, true),
       approve: (id: string) =>
         request(`/admin/businesses/${id}/approve`, { method: "PATCH" }, true),
       suspend: (id: string) =>
         request(`/admin/businesses/${id}/suspend`, { method: "PATCH" }, true),
     },
+    broadcast: (data: { subject: string; message: string; audience: string }) =>
+      request<{ recipient_count: number; status: string }>(
+        "/admin/broadcast", { method: "POST", body: JSON.stringify(data) }, true
+      ),
     reviews: {
       flag: (id: string) =>
         request(`/admin/reviews/${id}/flag`, { method: "PATCH" }, true),

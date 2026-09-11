@@ -321,3 +321,42 @@ async def send_admin_digest_email(
     </div>
     """
     await send_email(to=to, subject=subject, html=html, plain=plain)
+
+
+async def send_business_suspended_email(*, to: str, full_name: str, business_name: str) -> None:
+    subject = f'"{business_name}" has been suspended'
+    plain = (
+        f"Hi {full_name},\n\n"
+        f'Your business "{business_name}" has been suspended by an admin and is '
+        f"no longer visible on Umata?.\n\n"
+        f"If you think this is a mistake, please contact support.\n\n"
+        f"The Umata? Team"
+    )
+    html = f"""
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+      <h2>Listing suspended</h2>
+      <p>Hi {full_name},</p>
+      <p>Your business "{business_name}" has been suspended by an admin and is
+         no longer visible on Umata?.</p>
+      <p style="color:#6b7280;font-size:14px;">
+        If you think this is a mistake, please contact support.
+      </p>
+    </div>
+    """
+    await send_email(to=to, subject=subject, html=html, plain=plain)
+
+
+async def send_broadcast_email(*, to: str, subject: str, message: str) -> None:
+    """Admin-authored broadcast. `message` is plain text supplied by an
+    admin, not a template — line breaks are preserved but no other
+    formatting is assumed."""
+    html_message = message.replace("\n", "<br>")
+    html = f"""
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+      <p>{html_message}</p>
+      <p style="color:#9ca3af;font-size:12px;margin-top:32px;">
+        Sent by the Umata? team.
+      </p>
+    </div>
+    """
+    await send_email(to=to, subject=subject, html=html, plain=message)
