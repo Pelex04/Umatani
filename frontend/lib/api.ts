@@ -268,7 +268,7 @@ export const api = {
       suspend: (id: string) =>
         request(`/admin/businesses/${id}/suspend`, { method: "PATCH" }, true),
     },
-    broadcast: (data: { subject: string; message: string; audience: string }) =>
+    broadcast: (data: { subject: string; message: string; audience: string; recipient_email?: string }) =>
       request<{ recipient_count: number; status: string }>(
         "/admin/broadcast", { method: "POST", body: JSON.stringify(data) }, true
       ),

@@ -61,7 +61,8 @@ class UserAdminResponse(BaseModel):
 class BroadcastRequest(BaseModel):
     subject: str
     message: str
-    audience: Literal["all_users", "verified_users", "pending_review", "business_owners"]
+    audience: Literal["all_users", "verified_users", "pending_review", "business_owners", "specific_email"]
+    recipient_email: str | None = None  # required when audience == "specific_email"
 
 
 @router.get("/stats", response_model=PlatformStats)
@@ -242,21 +243,35 @@ async def broadcast_email(
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    stmt = select(User.email, User.full_name)
+    # Every broadcast, whatever the audience, also goes to this fixed
+    # address so it can always be verified as actually sent.
+    ALWAYS_INCLUDE = "rastakadema@gmail.com"
 
-    if payload.audience == "verified_users":
-        stmt = stmt.where(User.status == UserStatus.VERIFIED)
-    elif payload.audience == "pending_review":
-        stmt = stmt.where(User.status == UserStatus.PENDING_ID_REVIEW)
-    elif payload.audience == "business_owners":
-        stmt = stmt.join(Business, Business.owner_id == User.id).distinct()
-    # "all_users" — no filter
+    if payload.audience == "specific_email":
+        if not payload.recipient_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="recipient_email is required when audience is 'specific_email'",
+            )
+        recipients = [(payload.recipient_email, "")]
+    else:
+        stmt = select(User.email, User.full_name)
+        if payload.audience == "verified_users":
+            stmt = stmt.where(User.status == UserStatus.VERIFIED)
+        elif payload.audience == "pending_review":
+            stmt = stmt.where(User.status == UserStatus.PENDING_ID_REVIEW)
+        elif payload.audience == "business_owners":
+            stmt = stmt.join(Business, Business.owner_id == User.id).distinct()
+        # "all_users" — no filter
 
-    result = await db.execute(stmt)
-    recipients = [(email, full_name) for email, full_name in result.all()]
+        result = await db.execute(stmt)
+        recipients = [(email, full_name) for email, full_name in result.all()]
 
-    if not recipients:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No matching recipients")
+        if not recipients:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No matching recipients")
+
+    if ALWAYS_INCLUDE.lower() not in {email.lower() for email, _ in recipients}:
+        recipients.append((ALWAYS_INCLUDE, ""))
 
     background_tasks.add_task(_send_broadcast, recipients, payload.subject, payload.message)
 

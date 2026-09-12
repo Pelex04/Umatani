@@ -48,7 +48,8 @@ export default function AdminDashboard() {
   // Broadcast tab
   const [broadcastSubject, setBroadcastSubject] = useState("");
   const [broadcastMessage, setBroadcastMessage] = useState("");
-  const [broadcastAudience, setBroadcastAudience] = useState<"all_users"|"verified_users"|"pending_review"|"business_owners">("all_users");
+  const [broadcastAudience, setBroadcastAudience] = useState<"all_users"|"verified_users"|"pending_review"|"business_owners"|"specific_email">("all_users");
+  const [broadcastRecipient, setBroadcastRecipient] = useState("");
   const [sendingBroadcast, setSendingBroadcast] = useState(false);
   const [broadcastResult, setBroadcastResult] = useState<{ recipient_count: number } | null>(null);
   const [broadcastError, setBroadcastError] = useState<string | null>(null);
@@ -112,17 +113,19 @@ export default function AdminDashboard() {
 
   const sendBroadcast = async () => {
     if (!broadcastSubject.trim() || !broadcastMessage.trim()) return;
-    const confirmed = window.confirm(
-      `Send this email to ${broadcastAudience.replace("_", " ")}? This can't be undone.`
-    );
+    if (broadcastAudience === "specific_email" && !broadcastRecipient.trim()) return;
+    const target = broadcastAudience === "specific_email" ? broadcastRecipient.trim() : broadcastAudience.replace("_", " ");
+    const confirmed = window.confirm(`Send this email to ${target}? This can't be undone.`);
     if (!confirmed) return;
     setSendingBroadcast(true); setBroadcastError(null); setBroadcastResult(null);
     try {
       const result = await api.admin.broadcast({
         subject: broadcastSubject.trim(), message: broadcastMessage.trim(), audience: broadcastAudience,
+        ...(broadcastAudience === "specific_email" ? { recipient_email: broadcastRecipient.trim() } : {}),
       });
       setBroadcastResult(result);
       setBroadcastSubject(""); setBroadcastMessage("");
+      if (broadcastAudience === "specific_email") setBroadcastRecipient("");
     } catch (err: any) {
       setBroadcastError(err.message ?? "Could not send broadcast.");
     } finally {
@@ -624,8 +627,17 @@ export default function AdminDashboard() {
                   <option value="verified_users">Verified users</option>
                   <option value="pending_review">Pending ID review</option>
                   <option value="business_owners">Business owners</option>
+                  <option value="specific_email">Specific email address</option>
                 </select>
               </div>
+
+              {broadcastAudience === "specific_email" && (
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 6 }}>Recipient email</label>
+                  <input type="email" value={broadcastRecipient} onChange={e => setBroadcastRecipient(e.target.value)} placeholder="someone@example.com"
+                    style={{ width: "100%", fontSize: 13, padding: "9px 12px", border: "1px solid var(--border-med)", borderRadius: 2, boxSizing: "border-box" }} />
+                </div>
+              )}
 
               <div>
                 <label style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 6 }}>Subject</label>
@@ -646,7 +658,7 @@ export default function AdminDashboard() {
                 </p>
               )}
 
-              <button onClick={sendBroadcast} disabled={sendingBroadcast || !broadcastSubject.trim() || !broadcastMessage.trim()}
+              <button onClick={sendBroadcast} disabled={sendingBroadcast || !broadcastSubject.trim() || !broadcastMessage.trim() || (broadcastAudience === "specific_email" && !broadcastRecipient.trim())}
                 style={{ fontSize: 13, fontWeight: 600, background: "var(--forest)", color: "var(--cream)", border: "none", borderRadius: 2, padding: "11px", cursor: "pointer", opacity: sendingBroadcast ? 0.6 : 1 }}>
                 {sendingBroadcast ? "Sending…" : "Send broadcast"}
               </button>
