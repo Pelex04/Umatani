@@ -58,6 +58,18 @@ class User(Base):
     failed_login_attempts: Mapped[int] = mapped_column(default=0, nullable=False)
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Anchors for the reminder cascade — deliberately separate from
+    # updated_at, which shifts on unrelated changes (e.g. a failed login)
+    # and would silently reset the reminder clock if reused for this.
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    id_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # How many reminder emails have been sent for each pending action.
+    # Capped at 3 by the reminder job; a 4th missed cycle suspends the
+    # account instead of sending another reminder.
+    id_reminder_count: Mapped[int] = mapped_column(default=0, nullable=False)
+    business_reminder_count: Mapped[int] = mapped_column(default=0, nullable=False)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

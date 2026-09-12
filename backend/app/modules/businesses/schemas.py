@@ -161,9 +161,22 @@ class BusinessOwnerResponse(BusinessPublicResponse):
     status: BusinessStatus
 
 
+class OwnerSummary(BaseModel):
+    """Minimal owner context surfaced on the admin detail view — enough
+    to know who to contact and whether they're a verified student,
+    without pulling in the full user admin schema."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    full_name: str
+    email: str
+    status: str
+
+
 class BusinessAdminResponse(BusinessOwnerResponse):
     owner_id: uuid.UUID
     updated_at: datetime
+    owner: OwnerSummary | None = None
 
 
 class BusinessListItemResponse(BaseModel):

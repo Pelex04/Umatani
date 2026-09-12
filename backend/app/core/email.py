@@ -162,3 +162,201 @@ async def send_approval_email(*, to: str, full_name: str) -> None:
     </div>
     """
     await send_email(to=to, subject=subject, html=html, plain=plain)
+
+
+async def send_business_approval_email(*, to: str, full_name: str, business_name: str) -> None:
+    subject = f'"{business_name}" is now live on Umata?'
+    profile_url = f"{settings.FRONTEND_URL}/dashboard"
+    plain = (
+        f"Hi {full_name},\n\n"
+        f'Good news: "{business_name}" has been approved and is now live and '
+        f"visible to everyone browsing Umata?.\n\n"
+        f"View your listing: {profile_url}\n\n"
+        f"The Umata? Team"
+    )
+    html = f"""
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+      <h2>Your business is live! 🎉</h2>
+      <p>Hi {full_name},</p>
+      <p>"{business_name}" has been approved and is now visible to everyone browsing Umata?.</p>
+      <p style="margin:32px 0;">
+        <a href="{profile_url}"
+           style="background:#16a34a;color:#fff;padding:12px 24px;
+                  border-radius:6px;text-decoration:none;font-weight:600;">
+          View Your Listing
+        </a>
+      </p>
+    </div>
+    """
+    await send_email(to=to, subject=subject, html=html, plain=plain)
+
+
+async def send_id_upload_reminder_email(*, to: str, full_name: str, reminder_number: int) -> None:
+    upload_url = f"{settings.FRONTEND_URL}/dashboard"
+    subject = "Reminder: upload your student ID to finish setting up Umata?"
+    plain = (
+        f"Hi {full_name},\n\n"
+        f"You verified your school email but haven't uploaded your student ID yet "
+        f"(reminder {reminder_number} of 3). Until it's reviewed, you can't create a "
+        f"business profile.\n\n"
+        f"Upload it here: {upload_url}\n\n"
+        f"If you don't complete this after {3} reminders, your account will be suspended.\n\n"
+        f"The Umata? Team"
+    )
+    html = f"""
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+      <h2>Finish setting up your account</h2>
+      <p>Hi {full_name},</p>
+      <p>You verified your school email but haven't uploaded your student ID yet
+         (reminder {reminder_number} of 3). Until it's reviewed, you can't create a business profile.</p>
+      <p style="margin:32px 0;">
+        <a href="{upload_url}"
+           style="background:#2563eb;color:#fff;padding:12px 24px;
+                  border-radius:6px;text-decoration:none;font-weight:600;">
+          Upload Student ID
+        </a>
+      </p>
+      <p style="color:#6b7280;font-size:14px;">
+        If this isn't completed after 3 reminders, your account will be suspended.
+      </p>
+    </div>
+    """
+    await send_email(to=to, subject=subject, html=html, plain=plain)
+
+
+async def send_business_creation_reminder_email(*, to: str, full_name: str, reminder_number: int) -> None:
+    create_url = f"{settings.FRONTEND_URL}/dashboard"
+    subject = "Reminder: create your business profile on Umata?"
+    plain = (
+        f"Hi {full_name},\n\n"
+        f"Your student ID was verified a while ago but you haven't created a "
+        f"business profile yet (reminder {reminder_number} of 3).\n\n"
+        f"Create one here: {create_url}\n\n"
+        f"If you don't complete this after 3 reminders, your account will be suspended.\n\n"
+        f"The Umata? Team"
+    )
+    html = f"""
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+      <h2>Ready to list your business?</h2>
+      <p>Hi {full_name},</p>
+      <p>Your student ID was verified a while ago but you haven't created a business
+         profile yet (reminder {reminder_number} of 3).</p>
+      <p style="margin:32px 0;">
+        <a href="{create_url}"
+           style="background:#2563eb;color:#fff;padding:12px 24px;
+                  border-radius:6px;text-decoration:none;font-weight:600;">
+          Create Your Business
+        </a>
+      </p>
+      <p style="color:#6b7280;font-size:14px;">
+        If this isn't completed after 3 reminders, your account will be suspended.
+      </p>
+    </div>
+    """
+    await send_email(to=to, subject=subject, html=html, plain=plain)
+
+
+async def send_account_suspended_email(*, to: str, full_name: str, reason: str) -> None:
+    subject = "Your Umata? account has been suspended"
+    plain = (
+        f"Hi {full_name},\n\n"
+        f"Your Umata? account has been suspended: {reason}\n\n"
+        f"If you'd like to reactivate it, please contact support.\n\n"
+        f"The Umata? Team"
+    )
+    html = f"""
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+      <h2>Account suspended</h2>
+      <p>Hi {full_name},</p>
+      <p>Your Umata? account has been suspended: {reason}</p>
+      <p style="color:#6b7280;font-size:14px;">
+        If you'd like to reactivate it, please contact support.
+      </p>
+    </div>
+    """
+    await send_email(to=to, subject=subject, html=html, plain=plain)
+
+
+async def send_admin_digest_email(
+    *,
+    to: str,
+    new_users: list[dict],
+    new_businesses: list[dict],
+    stale_pending_businesses: list[dict],
+) -> None:
+    subject = (
+        f"Umata? daily digest — {len(new_users)} new users, "
+        f"{len(new_businesses)} new businesses, "
+        f"{len(stale_pending_businesses)} pending >24h"
+    )
+
+    def _rows_plain(items: list[dict], fields: list[str]) -> str:
+        if not items:
+            return "  (none)\n"
+        return "".join(f"  - {' | '.join(str(i.get(f, '')) for f in fields)}\n" for i in items)
+
+    def _rows_html(items: list[dict], fields: list[str]) -> str:
+        if not items:
+            return "<li style='color:#6b7280;'>None</li>"
+        return "".join(
+            f"<li>{' &middot; '.join(str(i.get(f, '')) for f in fields)}</li>" for i in items
+        )
+
+    plain = (
+        f"Umata? daily digest\n\n"
+        f"New users (last 24h):\n{_rows_plain(new_users, ['full_name', 'email'])}\n"
+        f"New businesses (last 24h):\n{_rows_plain(new_businesses, ['name', 'owner_email'])}\n"
+        f"Pending businesses waiting >24h for approval:\n"
+        f"{_rows_plain(stale_pending_businesses, ['name', 'owner_email', 'hours_pending'])}\n"
+    )
+    html = f"""
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+      <h2>Umata? daily digest</h2>
+      <h3>New users (last 24h)</h3>
+      <ul>{_rows_html(new_users, ['full_name', 'email'])}</ul>
+      <h3>New businesses (last 24h)</h3>
+      <ul>{_rows_html(new_businesses, ['name', 'owner_email'])}</ul>
+      <h3 style="color:#b91c1c;">Pending businesses waiting &gt;24h for approval</h3>
+      <ul>{_rows_html(stale_pending_businesses, ['name', 'owner_email', 'hours_pending'])}</ul>
+    </div>
+    """
+    await send_email(to=to, subject=subject, html=html, plain=plain)
+
+
+async def send_business_suspended_email(*, to: str, full_name: str, business_name: str) -> None:
+    subject = f'"{business_name}" has been suspended'
+    plain = (
+        f"Hi {full_name},\n\n"
+        f'Your business "{business_name}" has been suspended by an admin and is '
+        f"no longer visible on Umata?.\n\n"
+        f"If you think this is a mistake, please contact support.\n\n"
+        f"The Umata? Team"
+    )
+    html = f"""
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+      <h2>Listing suspended</h2>
+      <p>Hi {full_name},</p>
+      <p>Your business "{business_name}" has been suspended by an admin and is
+         no longer visible on Umata?.</p>
+      <p style="color:#6b7280;font-size:14px;">
+        If you think this is a mistake, please contact support.
+      </p>
+    </div>
+    """
+    await send_email(to=to, subject=subject, html=html, plain=plain)
+
+
+async def send_broadcast_email(*, to: str, subject: str, message: str) -> None:
+    """Admin-authored broadcast. `message` is plain text supplied by an
+    admin, not a template — line breaks are preserved but no other
+    formatting is assumed."""
+    html_message = message.replace("\n", "<br>")
+    html = f"""
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+      <p>{html_message}</p>
+      <p style="color:#9ca3af;font-size:12px;margin-top:32px;">
+        Sent by the Umata? team.
+      </p>
+    </div>
+    """
+    await send_email(to=to, subject=subject, html=html, plain=message)

@@ -60,6 +60,14 @@ class Settings(BaseSettings):
     EMAIL_FROM_ADDRESS: str = "no-reply@umatani.app"
     EMAIL_FROM_NAME: str = "Umata?"
 
+    # --- Reminder cascade / admin digest ---
+    # Fixed recipient for the daily admin digest (new users, new
+    # businesses, businesses pending >24h). Override via env if needed.
+    ADMIN_DIGEST_EMAIL: str = "umatani04@gmail.com"
+    # Days between each reminder, and how many reminders before suspension.
+    REMINDER_INTERVAL_DAYS: int = 3
+    REMINDER_MAX_COUNT: int = 3
+
     # --- Object storage (abstracted; Supabase Storage default impl) ---
     STORAGE_BACKEND: Literal["supabase", "local"] = "supabase"
     SUPABASE_URL: str | None = None

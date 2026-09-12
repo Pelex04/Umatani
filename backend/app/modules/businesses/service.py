@@ -299,12 +299,17 @@ class BusinessService:
         biz = await self.businesses.get_by_id_with_relations(business_id)
         if biz is None:
             raise BusinessError("Business not found")
+        # Not a mapped relationship — just a transient attribute for the
+        # admin detail view's OwnerSummary field. Avoids a cross-module
+        # SQLAlchemy relationship just for one read-only lookup.
+        biz.owner = await self.db.get(User, biz.owner_id)
         return biz
 
     async def approve(self, *, admin: User, business_id: uuid.UUID) -> Business:
         biz = await self.admin_get(business_id)
         if biz.status == BusinessStatus.APPROVED:
             raise BusinessError("Business is already approved")
+        owner = biz.owner  # attached by admin_get
         biz = await self.businesses.update(biz, status=BusinessStatus.APPROVED)
         await record_audit_event(
             self.db,
@@ -314,10 +319,20 @@ class BusinessService:
             actor_id=admin.id,
             actor_role=admin.role,
         )
+
+        if owner is not None:
+            from app.core.email import send_business_approval_email
+            await send_business_approval_email(
+                to=owner.email, full_name=owner.full_name, business_name=biz.name
+            )
+
         return await self.businesses.get_by_id_with_relations(biz.id)
 
     async def suspend(self, *, admin: User, business_id: uuid.UUID) -> Business:
         biz = await self.admin_get(business_id)
+        if biz.status == BusinessStatus.SUSPENDED:
+            raise BusinessError("Business is already suspended")
+        owner = biz.owner  # attached by admin_get
         biz = await self.businesses.update(biz, status=BusinessStatus.SUSPENDED)
         await record_audit_event(
             self.db,
@@ -327,4 +342,9 @@ class BusinessService:
             actor_id=admin.id,
             actor_role=admin.role,
         )
+        if owner is not None:
+            from app.core.email import send_business_suspended_email
+            await send_business_suspended_email(
+                to=owner.email, full_name=owner.full_name, business_name=biz.name
+            )
         return await self.businesses.get_by_id_with_relations(biz.id)
