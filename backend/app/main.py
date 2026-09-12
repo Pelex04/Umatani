@@ -14,6 +14,7 @@ from app.modules.businesses.routes import admin_router as businesses_admin_route
 from app.modules.businesses.routes import router as businesses_router
 from app.modules.categories.routes import admin_router as categories_admin_router
 from app.modules.categories.routes import router as categories_router
+from app.modules.internal.routes import router as internal_router
 from app.modules.media.routes import admin_router as media_admin_router
 from app.modules.media.routes import router as media_router
 from app.modules.reviews.routes import admin_router as reviews_admin_router
@@ -84,3 +85,4 @@ app.include_router(media_admin_router, prefix=prefix)
 app.include_router(support_router, prefix=prefix)
 app.include_router(support_admin_router, prefix=prefix)
 app.include_router(admin_router, prefix=prefix)
+app.include_router(internal_router, prefix=prefix)
