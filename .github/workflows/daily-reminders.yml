@@ -1,37 +1,27 @@
 name: Daily reminders & admin digest
 
 # Note: scheduled workflows only fire from the copy of this file on the
-# default branch (main). Until this PR is merged, `schedule` won't
-# trigger — use "Run workflow" (workflow_dispatch, below) to test it
-# from this branch in the meantime.
+# default branch (main). Use "Run workflow" (workflow_dispatch, below)
+# to test manually before/without waiting for the schedule.
+#
+# This calls the backend instead of running Brevo API calls directly
+# from this runner: GitHub Actions runner IPs rotate on every run, and
+# Brevo's IP-authorization security feature blocks unrecognized IPs.
+# Render's IP is already authorized (that's how normal transactional
+# emails already work), so the actual send happens there instead.
 
 on:
   schedule:
     - cron: "0 3 * * *"  # 03:00 UTC daily
-  workflow_dispatch: {}   # manual "Run workflow" button, for testing
+  workflow_dispatch: {}
 
 jobs:
-  run-reminders:
+  trigger-reminders:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run daily digest & reminders
-        run: python -m scripts.daily_digest_and_reminders
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
-          ADMIN_DIGEST_EMAIL: ${{ secrets.ADMIN_DIGEST_EMAIL }}
-          ENVIRONMENT: production
+      - name: Trigger daily digest & reminders
+        run: |
+          curl -sf -X POST \
+            --retry 3 --retry-delay 5 --max-time 90 \
+            "${{ secrets.BACKEND_URL }}/api/v1/internal/cron/daily-digest-and-reminders" \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}"

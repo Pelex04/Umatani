@@ -67,6 +67,12 @@ class Settings(BaseSettings):
     # Days between each reminder, and how many reminders before suspension.
     REMINDER_INTERVAL_DAYS: int = 3
     REMINDER_MAX_COUNT: int = 3
+    # Shared secret checked by /internal/cron/* — GitHub Actions calls
+    # these instead of hitting Brevo directly, since its runner IPs
+    # rotate constantly and Brevo's IP-authorization security feature
+    # blocks unrecognized ones. Must be set for the cron endpoint to
+    # work at all; there's no default on purpose.
+    CRON_SECRET: str | None = None
 
     # --- Object storage (abstracted; Supabase Storage default impl) ---
     STORAGE_BACKEND: Literal["supabase", "local"] = "supabase"
