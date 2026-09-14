@@ -55,7 +55,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════
           HERO — Full viewport, editorial split
       ═══════════════════════════════════════════ */}
-      <section style={{ position: "relative", height: "100vh", minHeight: 640, overflow: "hidden", background: "#210410" }}>
+      <section style={{ position: "relative", height: "100vh", minHeight: 640, overflow: "hidden", background: "var(--forest)" }}>
 
         {/* Right-side image panel — hidden on mobile (see media query below):
             the headline box is only capped at 680px, so below that width it
@@ -63,7 +63,7 @@ export default function Home() {
             no scrim in most of that area. A 50/50 split doesn't work at
             phone widths anyway; hiding it reveals the section's own solid
             dark background instead, which is intentional, not a fallback. */}
-        <motion.div className="hero-image-panel" style={{ scale: imgScale, position: "absolute", top: 0, right: 0, width: "52%", height: "100%", overflow: "hidden", background: "#210410" }}>
+        <motion.div className="hero-image-panel" style={{ scale: imgScale, position: "absolute", top: 0, right: 0, width: "52%", height: "100%", overflow: "hidden", background: "var(--forest)" }}>
           <Image
             src="/hero-students.jpg"
             alt=""
@@ -76,7 +76,7 @@ export default function Home() {
               gradient did, both so the left-edge text-fade below still
               reads cleanly and to keep the same moody, editorial tone
               as the rest of the hero rather than a raw stock photo. */}
-          <div style={{ position: "absolute", inset: 0, background: "rgba(33,4,16,0.46)" }} />
+          <div style={{ position: "absolute", inset: 0, background: "rgba(67,8,31,0.46)" }} />
           <div style={{
             position: "absolute", inset: 0,
             backgroundImage: `
@@ -97,7 +97,7 @@ export default function Home() {
         </motion.div>
 
         {/* Left gradient fade */}
-        <div className="hero-image-panel" style={{ position: "absolute", top: 0, left: "44%", width: "16%", height: "100%", background: "linear-gradient(to right, #210410, transparent)", zIndex: 2 }} />
+        <div className="hero-image-panel" style={{ position: "absolute", top: 0, left: "44%", width: "16%", height: "100%", background: "linear-gradient(to right, var(--forest), transparent)", zIndex: 2 }} />
 
         {/* Headline content */}
         <motion.div style={{ y: titleY, opacity: titleO, position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 6vw", maxWidth: 680 }}>
@@ -203,7 +203,7 @@ export default function Home() {
           style={{
             position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 4,
             borderTop: "1px solid rgba(250,243,231,0.06)",
-            background: "rgba(33,4,16,0.65)", backdropFilter: "blur(16px)",
+            background: "rgba(67,8,31,0.65)", backdropFilter: "blur(16px)",
           }}>
           {[
             [bizTotal === null ? "—" : String(bizTotal), "Verified businesses"],
