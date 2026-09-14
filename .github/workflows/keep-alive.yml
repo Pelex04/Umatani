@@ -1,0 +1,21 @@
+name: Keep backend awake
+
+# Render's free tier spins a web service down after 15 minutes of no
+# traffic, causing a slow cold-start on the next real request. This
+# pings /health often enough that it never goes idle.
+#
+# GitHub's scheduler isn't exact-to-the-minute under load, so this runs
+# a bit more often than strictly needed to leave margin.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # every 10 minutes
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /health
+        run: |
+          curl -sf --max-time 30 "${{ secrets.BACKEND_URL }}/health" || echo "Ping failed (backend may have been cold-starting)"
